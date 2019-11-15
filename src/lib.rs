@@ -13,6 +13,7 @@ pub use simdutf8check_sse::*;
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use core::convert::TryInto;
 
     #[test]
@@ -42,7 +43,10 @@ mod tests {
         let arr: [libc::c_char; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
         unsafe {
             assert_eq!(
-                simdutf8check_avx::validate_utf8_fast_avx(arr.as_ptr(), arr.len().try_into().unwrap()),
+                simdutf8check_avx::validate_utf8_fast_avx(
+                    arr.as_ptr(),
+                    arr.len().try_into().unwrap()
+                ),
                 true
             );
         }
