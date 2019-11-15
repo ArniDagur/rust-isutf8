@@ -1,13 +1,13 @@
 #[cfg(target_arch = "x86")]
-pub use core::arch::x86::{
+use core::arch::x86::{
     __m128i, _mm_add_epi8, _mm_alignr_epi8, _mm_and_si128, _mm_cmpeq_epi8, _mm_cmpgt_epi8,
     _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_set_epi8, _mm_setr_epi8, _mm_setzero_si128,
     _mm_shuffle_epi8, _mm_srli_epi16, _mm_subs_epu8, _mm_testz_si128,
 };
 #[cfg(target_arch = "x86_64")]
-pub use core::arch::x86_64::{
+use core::arch::x86_64::{
     __m128i, _mm_add_epi8, _mm_alignr_epi8, _mm_and_si128, _mm_cmpeq_epi8, _mm_cmpgt_epi8,
-    _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_set_epi8, _mm_setr_epi8, _mm_setzero_si128,
+    _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_setr_epi8, _mm_setzero_si128,
     _mm_shuffle_epi8, _mm_srli_epi16, _mm_subs_epu8, _mm_testz_si128,
 };
 use core::default::Default;
@@ -30,10 +30,10 @@ pub struct __loadu_si128 {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct ProcessedUtfBytes {
-    pub rawbytes: __m128i,
-    pub high_nibbles: __m128i,
-    pub carried_continuations: __m128i,
+struct ProcessedUtfBytes {
+    rawbytes: __m128i,
+    high_nibbles: __m128i,
+    carried_continuations: __m128i,
 }
 
 impl Default for ProcessedUtfBytes {

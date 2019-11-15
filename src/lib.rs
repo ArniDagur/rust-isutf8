@@ -8,12 +8,10 @@
 pub mod simdutf8check_avx;
 pub mod simdutf8check_sse;
 
-pub use simdutf8check_avx::*;
-pub use simdutf8check_sse::*;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::simdutf8check_avx;
+    use super::simdutf8check_sse;
     use core::convert::TryInto;
 
     #[test]
