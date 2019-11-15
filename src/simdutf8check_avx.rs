@@ -318,7 +318,7 @@ pub unsafe fn check_utf8_bytes_ascii_path(
     return pb;
 }
 
-pub unsafe fn validate_utf8_fast_avx_asciipath(src: *const libc::c_char, len: size_t) -> bool {
+pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: size_t) -> bool {
     let mut i: size_t = 0u64;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
