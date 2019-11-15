@@ -90,12 +90,12 @@ unsafe fn continuation_lengths(high_nibbles: __m256i) -> __m256i {
 
 #[inline]
 unsafe fn carry_continuations(initial_lengths: __m256i, previous_carries: __m256i) -> __m256i {
-    let right1: __m256i = _mm256_subs_epu8(
+    let right1 = _mm256_subs_epu8(
         push_last_byte_of_a_to_b(previous_carries, initial_lengths),
         _mm256_set1_epi8(1i8),
     );
-    let sum: __m256i = _mm256_add_epi8(initial_lengths, right1);
-    let right2: __m256i = _mm256_subs_epu8(
+    let sum = _mm256_add_epi8(initial_lengths, right1);
+    let right2 = _mm256_subs_epu8(
         push_last_2bytes_of_a_to_b(previous_carries, sum),
         _mm256_set1_epi8(2i8),
     );
@@ -107,7 +107,7 @@ unsafe fn check_continuations(initial_lengths: __m256i, carries: __m256i, has_er
     // overlap || underlap
     // carry > length && length > 0 || !(carry > length) && !(length > 0)
     // (carries > length) == (lengths > 0)
-    let overunder: __m256i = _mm256_cmpeq_epi8(
+    let overunder = _mm256_cmpeq_epi8(
         _mm256_cmpgt_epi8(carries, initial_lengths),
         _mm256_cmpgt_epi8(initial_lengths, _mm256_setzero_si256()),
     );
@@ -123,19 +123,19 @@ unsafe fn check_first_continuation_max(
     off1_current_bytes: __m256i,
     has_error: *mut __m256i,
 ) {
-    let mask_ed: __m256i = _mm256_cmpeq_epi8(
+    let mask_ed = _mm256_cmpeq_epi8(
         off1_current_bytes,
         _mm256_set1_epi8(0xedi32 as libc::c_char),
     );
-    let mask_f4: __m256i = _mm256_cmpeq_epi8(
+    let mask_f4 = _mm256_cmpeq_epi8(
         off1_current_bytes,
         _mm256_set1_epi8(0xf4i32 as libc::c_char),
     );
-    let bad_follow_ed: __m256i = _mm256_and_si256(
+    let bad_follow_ed = _mm256_and_si256(
         _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x9fi32 as libc::c_char)),
         mask_ed,
     );
-    let bad_follow_f4: __m256i = _mm256_and_si256(
+    let bad_follow_f4 = _mm256_and_si256(
         _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x8fi32 as libc::c_char)),
         mask_f4,
     );
@@ -156,8 +156,8 @@ unsafe fn check_overlong(
     previous_hibits: __m256i,
     has_error: *mut __m256i,
 ) {
-    let off1_hibits: __m256i = push_last_byte_of_a_to_b(previous_hibits, hibits);
-    let initial_mins: __m256i = _mm256_shuffle_epi8(
+    let off1_hibits = push_last_byte_of_a_to_b(previous_hibits, hibits);
+    let initial_mins = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
             -(128i32) as libc::c_char,
             -(128i32) as libc::c_char,
@@ -194,8 +194,8 @@ unsafe fn check_overlong(
         ),
         off1_hibits,
     );
-    let initial_under: __m256i = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
-    let second_mins: __m256i = _mm256_shuffle_epi8(
+    let initial_under = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
+    let second_mins = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
             -(128i32) as libc::c_char,
             -(128i32) as libc::c_char,
@@ -232,7 +232,7 @@ unsafe fn check_overlong(
         ),
         off1_hibits,
     );
-    let second_under: __m256i = _mm256_cmpgt_epi8(second_mins, current_bytes);
+    let second_under = _mm256_cmpgt_epi8(second_mins, current_bytes);
     *has_error = _mm256_or_si256(*has_error, _mm256_and_si256(initial_under, second_under));
 }
 
@@ -250,14 +250,14 @@ unsafe fn check_utf8_bytes(
     previous: *mut ProcessedUtfBytes,
     has_error: *mut __m256i,
 ) -> ProcessedUtfBytes {
-    let mut pb: ProcessedUtfBytes = ProcessedUtfBytes::default();
+    let mut pb = ProcessedUtfBytes::default();
     count_nibbles(current_bytes, &mut pb);
     check_smaller_than_0xf4(current_bytes, has_error);
-    let initial_lengths: __m256i = continuation_lengths(pb.high_nibbles);
+    let initial_lengths = continuation_lengths(pb.high_nibbles);
     pb.carried_continuations =
         carry_continuations(initial_lengths, (*previous).carried_continuations);
     check_continuations(initial_lengths, pb.carried_continuations, has_error);
-    let off1_current_bytes: __m256i = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
+    let off1_current_bytes = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
     check_first_continuation_max(current_bytes, off1_current_bytes, has_error);
     check_overlong(
         current_bytes,
@@ -293,11 +293,11 @@ unsafe fn check_utf8_bytes_ascii_path(
     let mut pb = ProcessedUtfBytes::default();
     count_nibbles(current_bytes, &mut pb);
     check_smaller_than_0xf4(current_bytes, has_error);
-    let initial_lengths: __m256i = continuation_lengths(pb.high_nibbles);
+    let initial_lengths = continuation_lengths(pb.high_nibbles);
     pb.carried_continuations =
         carry_continuations(initial_lengths, (*previous).carried_continuations);
     check_continuations(initial_lengths, pb.carried_continuations, has_error);
-    let off1_current_bytes: __m256i = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
+    let off1_current_bytes = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
     check_first_continuation_max(current_bytes, off1_current_bytes, has_error);
     check_overlong(
         current_bytes,
@@ -311,26 +311,25 @@ unsafe fn check_utf8_bytes_ascii_path(
 
 pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: usize) -> bool {
     let mut i = 0;
-    let mut has_error: __m256i = _mm256_setzero_si256();
+    let mut has_error = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
     if len >= 32 {
         while i <= len.wrapping_sub(32) {
-            let current_bytes: __m256i =
-                _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
+            let current_bytes = _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes_ascii_path(current_bytes, &mut previous, &mut has_error);
             i = (i).wrapping_add(32)
         }
     }
     // last part
     if i < len {
-        let mut buffer: [libc::c_char; 32] = [0; 32];
+        let mut buffer = [0; 32];
         ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
         ptr::copy(
             src.offset(i as isize),
             buffer.as_mut_ptr(),
             len.wrapping_sub(i),
         );
-        let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
+        let current_bytes_0 = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
     } else {
         has_error = _mm256_or_si256(
@@ -349,26 +348,25 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: usize
 
 pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
     let mut i = 0;
-    let mut has_error: __m256i = _mm256_setzero_si256();
+    let mut has_error = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
     if len >= 32 {
         while i <= len.wrapping_sub(32) {
-            let current_bytes: __m256i =
-                _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
+            let current_bytes = _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes(current_bytes, &mut previous, &mut has_error);
             i = (i).wrapping_add(32)
         }
     }
     // last part
     if i < len {
-        let mut buffer: [libc::c_char; 32] = [0; 32];
+        let mut buffer = [0; 32];
         ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
         ptr::copy(
             src.offset(i as isize),
             buffer.as_mut_ptr(),
             len.wrapping_sub(i),
         );
-        let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
+        let current_bytes_0 = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
     } else {
         has_error = _mm256_or_si256(
