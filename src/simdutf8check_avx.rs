@@ -340,7 +340,7 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: size_
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
-        previous = check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error)
+        check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
     } else {
         has_error = _mm256_or_si256(
             _mm256_cmpgt_epi8(
@@ -378,7 +378,7 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool 
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
-        previous = check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error)
+        check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
     } else {
         has_error = _mm256_or_si256(
             _mm256_cmpgt_epi8(

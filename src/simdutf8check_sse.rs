@@ -251,7 +251,7 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool 
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m128i = _mm_loadu_si128(buffer.as_mut_ptr() as *const __m128i);
-        previous = check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error)
+        check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
     } else {
         has_error = _mm_or_si128(
             _mm_cmpgt_epi8(
