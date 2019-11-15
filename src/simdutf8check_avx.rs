@@ -12,6 +12,7 @@ pub use core::arch::x86_64::{
     _mm256_set1_epi8, _mm256_set_epi8, _mm256_setr_epi8, _mm256_setzero_si256, _mm256_shuffle_epi8,
     _mm256_srli_epi16, _mm256_subs_epu8, _mm256_testz_si256,
 };
+use core::default::Default;
 
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
@@ -33,6 +34,18 @@ pub struct avx_processed_utf_bytes {
     pub rawbytes: __m256i,
     pub high_nibbles: __m256i,
     pub carried_continuations: __m256i,
+}
+
+impl Default for avx_processed_utf_bytes {
+    fn default() -> Self {
+        unsafe {
+            avx_processed_utf_bytes {
+                rawbytes: _mm256_setzero_si256(),
+                high_nibbles: _mm256_setzero_si256(),
+                carried_continuations: _mm256_setzero_si256(),
+            }
+        }
+    }
 }
 
 /*
@@ -300,11 +313,7 @@ pub unsafe fn avxcheckUTF8Bytes(
     mut previous: *mut avx_processed_utf_bytes,
     mut has_error: *mut __m256i,
 ) -> avx_processed_utf_bytes {
-    let mut pb: avx_processed_utf_bytes = avx_processed_utf_bytes {
-        rawbytes: _mm256_setzero_si256(),
-        high_nibbles: _mm256_setzero_si256(),
-        carried_continuations: _mm256_setzero_si256(),
-    };
+    let mut pb: avx_processed_utf_bytes = avx_processed_utf_bytes::default();
     avx_count_nibbles(current_bytes, &mut pb);
     avxcheckSmallerThan0xF4(current_bytes, has_error);
     let mut initial_lengths: __m256i = avxcontinuationLengths(pb.high_nibbles);
@@ -410,11 +419,7 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
     let mut i: size_t = 0 as libc::c_int as size_t;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
-        let mut init = avx_processed_utf_bytes {
-            rawbytes: _mm256_setzero_si256(),
-            high_nibbles: _mm256_setzero_si256(),
-            carried_continuations: _mm256_setzero_si256(),
-        };
+        let mut init = avx_processed_utf_bytes::default();
         init
     };
     if len >= 32 as libc::c_int as libc::c_ulong {
@@ -491,11 +496,7 @@ pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size
     let mut i: size_t = 0 as libc::c_int as size_t;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
-        let mut init = avx_processed_utf_bytes {
-            rawbytes: _mm256_setzero_si256(),
-            high_nibbles: _mm256_setzero_si256(),
-            carried_continuations: _mm256_setzero_si256(),
-        };
+        let mut init = avx_processed_utf_bytes::default();
         init
     };
     if len >= 32 as libc::c_int as libc::c_ulong {

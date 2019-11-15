@@ -10,6 +10,7 @@ pub use core::arch::x86_64::{
     _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_set_epi8, _mm_setr_epi8, _mm_setzero_si128,
     _mm_shuffle_epi8, _mm_srli_epi16, _mm_subs_epu8, _mm_testz_si128,
 };
+use core::default::Default;
 
 extern "C" {
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
@@ -31,6 +32,18 @@ pub struct processed_utf_bytes {
     pub rawbytes: __m128i,
     pub high_nibbles: __m128i,
     pub carried_continuations: __m128i,
+}
+
+impl Default for processed_utf_bytes {
+    fn default() -> Self {
+        unsafe {
+            processed_utf_bytes {
+                rawbytes: _mm_setzero_si128(),
+                high_nibbles: _mm_setzero_si128(),
+                carried_continuations: _mm_setzero_si128(),
+            }
+        }
+    }
 }
 
 /*
@@ -241,11 +254,7 @@ pub unsafe fn checkUTF8Bytes(
     mut previous: *mut processed_utf_bytes,
     mut has_error: *mut __m128i,
 ) -> processed_utf_bytes {
-    let mut pb: processed_utf_bytes = processed_utf_bytes {
-        rawbytes: _mm_setzero_si128(),
-        high_nibbles: _mm_setzero_si128(),
-        carried_continuations: _mm_setzero_si128(),
-    };
+    let mut pb: processed_utf_bytes = processed_utf_bytes::default();
     count_nibbles(current_bytes, &mut pb);
     checkSmallerThan0xF4(current_bytes, has_error);
     let mut initial_lengths: __m128i = continuationLengths(pb.high_nibbles);
@@ -272,11 +281,7 @@ pub unsafe fn validate_utf8_fast(mut src: *const libc::c_char, mut len: size_t) 
     let mut i: size_t = 0 as libc::c_int as size_t;
     let mut has_error: __m128i = _mm_setzero_si128();
     let mut previous: processed_utf_bytes = {
-        let mut init = processed_utf_bytes {
-            rawbytes: _mm_setzero_si128(),
-            high_nibbles: _mm_setzero_si128(),
-            carried_continuations: _mm_setzero_si128(),
-        };
+        let mut init = processed_utf_bytes::default();
         init
     };
     if len >= 16 as libc::c_int as libc::c_ulong {
