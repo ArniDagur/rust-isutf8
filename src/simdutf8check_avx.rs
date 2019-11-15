@@ -66,18 +66,18 @@ impl Default for avx_processed_utf_bytes {
  *
  */
 #[inline]
-unsafe fn push_last_byte_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
+unsafe fn push_last_byte_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 15i32);
 }
 
 #[inline]
-unsafe fn push_last_2bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
+unsafe fn push_last_2bytes_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 14i32);
 }
 
 // all byte values must be no larger than 0xF4
 #[inline]
-unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mut __m256i) {
+unsafe fn avxcheckSmallerThan0xF4(current_bytes: __m256i, has_error: *mut __m256i) {
     // unsigned, saturates to 0 below max
     *has_error = _mm256_or_si256(
         *has_error,
@@ -86,7 +86,7 @@ unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mu
 }
 
 #[inline]
-unsafe fn avxcontinuationLengths(mut high_nibbles: __m256i) -> __m256i {
+unsafe fn avxcontinuationLengths(high_nibbles: __m256i) -> __m256i {
     return _mm256_shuffle_epi8(
         _mm256_setr_epi8(
             1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8, 1i8,
@@ -97,16 +97,13 @@ unsafe fn avxcontinuationLengths(mut high_nibbles: __m256i) -> __m256i {
 }
 
 #[inline]
-unsafe fn avxcarryContinuations(
-    mut initial_lengths: __m256i,
-    mut previous_carries: __m256i,
-) -> __m256i {
-    let mut right1: __m256i = _mm256_subs_epu8(
+unsafe fn avxcarryContinuations(initial_lengths: __m256i, previous_carries: __m256i) -> __m256i {
+    let right1: __m256i = _mm256_subs_epu8(
         push_last_byte_of_a_to_b(previous_carries, initial_lengths),
         _mm256_set1_epi8(1i8),
     );
-    let mut sum: __m256i = _mm256_add_epi8(initial_lengths, right1);
-    let mut right2: __m256i = _mm256_subs_epu8(
+    let sum: __m256i = _mm256_add_epi8(initial_lengths, right1);
+    let right2: __m256i = _mm256_subs_epu8(
         push_last_2bytes_of_a_to_b(previous_carries, sum),
         _mm256_set1_epi8(2i8),
     );
@@ -115,14 +112,14 @@ unsafe fn avxcarryContinuations(
 
 #[inline]
 unsafe fn avxcheckContinuations(
-    mut initial_lengths: __m256i,
-    mut carries: __m256i,
-    mut has_error: *mut __m256i,
+    initial_lengths: __m256i,
+    carries: __m256i,
+    has_error: *mut __m256i,
 ) {
     // overlap || underlap
     // carry > length && length > 0 || !(carry > length) && !(length > 0)
     // (carries > length) == (lengths > 0)
-    let mut overunder: __m256i = _mm256_cmpeq_epi8(
+    let overunder: __m256i = _mm256_cmpeq_epi8(
         _mm256_cmpgt_epi8(carries, initial_lengths),
         _mm256_cmpgt_epi8(initial_lengths, _mm256_setzero_si256()),
     );
@@ -134,23 +131,23 @@ unsafe fn avxcheckContinuations(
 // next byte must be continuation, ie sign bit is set, so signed < is ok
 #[inline]
 unsafe fn avxcheckFirstContinuationMax(
-    mut current_bytes: __m256i,
-    mut off1_current_bytes: __m256i,
-    mut has_error: *mut __m256i,
+    current_bytes: __m256i,
+    off1_current_bytes: __m256i,
+    has_error: *mut __m256i,
 ) {
-    let mut maskED: __m256i = _mm256_cmpeq_epi8(
+    let maskED: __m256i = _mm256_cmpeq_epi8(
         off1_current_bytes,
         _mm256_set1_epi8(0xedi32 as libc::c_char),
     );
-    let mut maskF4: __m256i = _mm256_cmpeq_epi8(
+    let maskF4: __m256i = _mm256_cmpeq_epi8(
         off1_current_bytes,
         _mm256_set1_epi8(0xf4i32 as libc::c_char),
     );
-    let mut badfollowED: __m256i = _mm256_and_si256(
+    let badfollowED: __m256i = _mm256_and_si256(
         _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x9fi32 as libc::c_char)),
         maskED,
     );
-    let mut badfollowF4: __m256i = _mm256_and_si256(
+    let badfollowF4: __m256i = _mm256_and_si256(
         _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x8fi32 as libc::c_char)),
         maskF4,
     );
@@ -165,14 +162,14 @@ unsafe fn avxcheckFirstContinuationMax(
 // else      false && false
 #[inline]
 unsafe fn avxcheckOverlong(
-    mut current_bytes: __m256i,
-    mut off1_current_bytes: __m256i,
-    mut hibits: __m256i,
-    mut previous_hibits: __m256i,
-    mut has_error: *mut __m256i,
+    current_bytes: __m256i,
+    off1_current_bytes: __m256i,
+    hibits: __m256i,
+    previous_hibits: __m256i,
+    has_error: *mut __m256i,
 ) {
-    let mut off1_hibits: __m256i = push_last_byte_of_a_to_b(previous_hibits, hibits);
-    let mut initial_mins: __m256i = _mm256_shuffle_epi8(
+    let off1_hibits: __m256i = push_last_byte_of_a_to_b(previous_hibits, hibits);
+    let initial_mins: __m256i = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
             -(128i32) as libc::c_char,
             -(128i32) as libc::c_char,
@@ -209,8 +206,8 @@ unsafe fn avxcheckOverlong(
         ),
         off1_hibits,
     );
-    let mut initial_under: __m256i = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
-    let mut second_mins: __m256i = _mm256_shuffle_epi8(
+    let initial_under: __m256i = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
+    let second_mins: __m256i = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
             -(128i32) as libc::c_char,
             -(128i32) as libc::c_char,
@@ -247,12 +244,12 @@ unsafe fn avxcheckOverlong(
         ),
         off1_hibits,
     );
-    let mut second_under: __m256i = _mm256_cmpgt_epi8(second_mins, current_bytes);
+    let second_under: __m256i = _mm256_cmpgt_epi8(second_mins, current_bytes);
     *has_error = _mm256_or_si256(*has_error, _mm256_and_si256(initial_under, second_under));
 }
 
 #[inline]
-unsafe fn avx_count_nibbles(mut bytes: __m256i, mut answer: *mut avx_processed_utf_bytes) {
+unsafe fn avx_count_nibbles(bytes: __m256i, mut answer: *mut avx_processed_utf_bytes) {
     (*answer).rawbytes = bytes;
     (*answer).high_nibbles =
         _mm256_and_si256(_mm256_srli_epi16(bytes, 4i32), _mm256_set1_epi8(0xfi8));
@@ -261,19 +258,18 @@ unsafe fn avx_count_nibbles(mut bytes: __m256i, mut answer: *mut avx_processed_u
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
 pub unsafe fn avxcheckUTF8Bytes(
-    mut current_bytes: __m256i,
-    mut previous: *mut avx_processed_utf_bytes,
-    mut has_error: *mut __m256i,
+    current_bytes: __m256i,
+    previous: *mut avx_processed_utf_bytes,
+    has_error: *mut __m256i,
 ) -> avx_processed_utf_bytes {
     let mut pb: avx_processed_utf_bytes = avx_processed_utf_bytes::default();
     avx_count_nibbles(current_bytes, &mut pb);
     avxcheckSmallerThan0xF4(current_bytes, has_error);
-    let mut initial_lengths: __m256i = avxcontinuationLengths(pb.high_nibbles);
+    let initial_lengths: __m256i = avxcontinuationLengths(pb.high_nibbles);
     pb.carried_continuations =
         avxcarryContinuations(initial_lengths, (*previous).carried_continuations);
     avxcheckContinuations(initial_lengths, pb.carried_continuations, has_error);
-    let mut off1_current_bytes: __m256i =
-        push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
+    let off1_current_bytes: __m256i = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
     avxcheckFirstContinuationMax(current_bytes, off1_current_bytes, has_error);
     avxcheckOverlong(
         current_bytes,
@@ -288,9 +284,9 @@ pub unsafe fn avxcheckUTF8Bytes(
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
 pub unsafe fn avxcheckUTF8Bytes_asciipath(
-    mut current_bytes: __m256i,
-    mut previous: *mut avx_processed_utf_bytes,
-    mut has_error: *mut __m256i,
+    current_bytes: __m256i,
+    previous: *mut avx_processed_utf_bytes,
+    has_error: *mut __m256i,
 ) -> avx_processed_utf_bytes {
     if _mm256_testz_si256(current_bytes, _mm256_set1_epi8(0x80i32 as libc::c_char)) != 0 {
         // fast ascii path
@@ -313,12 +309,11 @@ pub unsafe fn avxcheckUTF8Bytes_asciipath(
     };
     avx_count_nibbles(current_bytes, &mut pb);
     avxcheckSmallerThan0xF4(current_bytes, has_error);
-    let mut initial_lengths: __m256i = avxcontinuationLengths(pb.high_nibbles);
+    let initial_lengths: __m256i = avxcontinuationLengths(pb.high_nibbles);
     pb.carried_continuations =
         avxcarryContinuations(initial_lengths, (*previous).carried_continuations);
     avxcheckContinuations(initial_lengths, pb.carried_continuations, has_error);
-    let mut off1_current_bytes: __m256i =
-        push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
+    let off1_current_bytes: __m256i = push_last_byte_of_a_to_b((*previous).rawbytes, pb.rawbytes);
     avxcheckFirstContinuationMax(current_bytes, off1_current_bytes, has_error);
     avxcheckOverlong(
         current_bytes,
@@ -330,19 +325,16 @@ pub unsafe fn avxcheckUTF8Bytes_asciipath(
     return pb;
 }
 
-pub unsafe fn validate_utf8_fast_avx_asciipath(
-    mut src: *const libc::c_char,
-    mut len: size_t,
-) -> bool {
+pub unsafe fn validate_utf8_fast_avx_asciipath(src: *const libc::c_char, len: size_t) -> bool {
     let mut i: size_t = 0u64;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
-        let mut init = avx_processed_utf_bytes::default();
+        let init = avx_processed_utf_bytes::default();
         init
     };
     if len >= 32u64 {
         while i <= len.wrapping_sub(32u64) {
-            let mut current_bytes: __m256i =
+            let current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = avxcheckUTF8Bytes_asciipath(current_bytes, &mut previous, &mut has_error);
             i = (i).wrapping_add(32u64)
@@ -357,8 +349,7 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
             src.offset(i as isize) as *const libc::c_void,
             len.wrapping_sub(i),
         );
-        let mut current_bytes_0: __m256i =
-            _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
+        let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         previous = avxcheckUTF8Bytes(current_bytes_0, &mut previous, &mut has_error)
     } else {
         has_error = _mm256_or_si256(
@@ -375,16 +366,16 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
     return _mm256_testz_si256(has_error, has_error) != 0;
 }
 
-pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size_t) -> bool {
+pub unsafe fn validate_utf8_fast_avx(src: *const libc::c_char, len: size_t) -> bool {
     let mut i: size_t = 0u64;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
-        let mut init = avx_processed_utf_bytes::default();
+        let init = avx_processed_utf_bytes::default();
         init
     };
     if len >= 32u64 {
         while i <= len.wrapping_sub(32u64) {
-            let mut current_bytes: __m256i =
+            let current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = avxcheckUTF8Bytes(current_bytes, &mut previous, &mut has_error);
             i = (i).wrapping_add(32u64)
@@ -399,8 +390,7 @@ pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size
             src.offset(i as isize) as *const libc::c_void,
             len.wrapping_sub(i),
         );
-        let mut current_bytes_0: __m256i =
-            _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
+        let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         previous = avxcheckUTF8Bytes(current_bytes_0, &mut previous, &mut has_error)
     } else {
         has_error = _mm256_or_si256(
