@@ -218,10 +218,10 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
     let mut has_error = _mm_setzero_si128();
     let mut previous = ProcessedUtfBytes::default();
     if len >= 16 {
-        while i <= len.wrapping_sub(16) {
+        while i <= len - 16 {
             let current_bytes = _mm_loadu_si128(src.offset(i as isize) as *const __m128i);
             previous = check_utf8_bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(16)
+            i += 16
         }
     }
     // last part
@@ -231,7 +231,7 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
         ptr::copy(
             src.offset(i as isize),
             buffer.as_mut_ptr(),
-            len.wrapping_sub(i),
+            len - i,
         );
         let current_bytes_0 = _mm_loadu_si128(buffer.as_mut_ptr() as *const __m128i);
         check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);

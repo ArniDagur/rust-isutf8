@@ -314,10 +314,10 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: usize
     let mut has_error = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
     if len >= 32 {
-        while i <= len.wrapping_sub(32) {
+        while i <= len - 32 {
             let current_bytes = _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes_ascii_path(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(32)
+            i += 32;
         }
     }
     // last part
@@ -327,7 +327,7 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: usize
         ptr::copy(
             src.offset(i as isize),
             buffer.as_mut_ptr(),
-            len.wrapping_sub(i),
+            len - i,
         );
         let current_bytes_0 = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
@@ -351,10 +351,10 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
     let mut has_error = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
     if len >= 32 {
-        while i <= len.wrapping_sub(32) {
+        while i <= len - 32 {
             let current_bytes = _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(32)
+            i += 32
         }
     }
     // last part
@@ -364,7 +364,7 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
         ptr::copy(
             src.offset(i as isize),
             buffer.as_mut_ptr(),
-            len.wrapping_sub(i),
+            len - i,
         );
         let current_bytes_0 = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
         check_utf8_bytes(current_bytes_0, &mut previous, &mut has_error);
