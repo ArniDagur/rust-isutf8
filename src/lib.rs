@@ -3,11 +3,12 @@
 // lib.rs
 // Copyright (c) 2019 Árni Dagur <arni@dagur.eu> MIT license
 //
-pub mod simdutf8check_sse;
+#![feature(stdsimd)]
 pub mod simdutf8check_avx;
+pub mod simdutf8check_sse;
 
-pub use simdutf8check_sse::*;
 pub use simdutf8check_avx::*;
+pub use simdutf8check_sse::*;
 
 #[test]
 fn valid_sequences_sse() {
