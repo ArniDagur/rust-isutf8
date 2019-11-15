@@ -15,13 +15,6 @@ use core::arch::x86_64::{
 use core::default::Default;
 use core::ptr;
 
-#[repr(C, packed)]
-#[derive(Copy, Clone)]
-pub struct __loadu_si256 {
-    pub __v: __m256i,
-}
-
-#[repr(C)]
 #[derive(Copy, Clone)]
 struct ProcessedUtfBytes {
     rawbytes: __m256i,
