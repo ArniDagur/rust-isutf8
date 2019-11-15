@@ -11,16 +11,7 @@ use core::arch::x86_64::{
     _mm_shuffle_epi8, _mm_srli_epi16, _mm_subs_epu8, _mm_testz_si128,
 };
 use core::default::Default;
-
-extern "C" {
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-}
-
-/* defined(__need_ptrdiff_t) */
-/* Always define size_t when modules are available. */
-#[allow(non_camel_case_types)]
-pub type size_t = libc::c_ulong;
+use core::ptr;
 
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
@@ -78,9 +69,7 @@ unsafe fn check_smaller_than_0xf4(current_bytes: __m128i, has_error: *mut __m128
 #[inline]
 unsafe fn continuation_lengths(high_nibbles: __m128i) -> __m128i {
     return _mm_shuffle_epi8(
-        _mm_setr_epi8(
-            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8,
-        ),
+        _mm_setr_epi8(1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 3, 4),
         high_nibbles,
     );
 }
@@ -230,24 +219,24 @@ unsafe fn check_utf8_bytes(
     return pb;
 }
 
-pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool {
-    let mut i: size_t = 0u64;
+pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
+    let mut i = 0;
     let mut has_error: __m128i = _mm_setzero_si128();
     let mut previous = ProcessedUtfBytes::default();
-    if len >= 16u64 {
-        while i <= len.wrapping_sub(16u64) {
+    if len >= 16 {
+        while i <= len.wrapping_sub(16) {
             let current_bytes: __m128i = _mm_loadu_si128(src.offset(i as isize) as *const __m128i);
             previous = check_utf8_bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(16u64)
+            i = (i).wrapping_add(16)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 16] = [0; 16];
-        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 16u64);
-        memcpy(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            src.offset(i as isize) as *const libc::c_void,
+        ptr::write_bytes(buffer.as_mut_ptr(), 0, 16);
+        ptr::copy(
+            src.offset(i as isize),
+            buffer.as_mut_ptr(),
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m128i = _mm_loadu_si128(buffer.as_mut_ptr() as *const __m128i);
@@ -256,9 +245,7 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool 
         has_error = _mm_or_si128(
             _mm_cmpgt_epi8(
                 previous.carried_continuations,
-                _mm_setr_epi8(
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
-                ),
+                _mm_setr_epi8(9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 1),
             ),
             has_error,
         )

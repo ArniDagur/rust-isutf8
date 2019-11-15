@@ -13,16 +13,7 @@ use core::arch::x86_64::{
     _mm256_srli_epi16, _mm256_subs_epu8, _mm256_testz_si256,
 };
 use core::default::Default;
-
-extern "C" {
-    fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
-}
-
-/* defined(__need_ptrdiff_t) */
-/* Always define size_t when modules are available. */
-#[allow(non_camel_case_types)]
-pub type size_t = libc::c_ulong;
+use core::ptr;
 
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
@@ -90,8 +81,8 @@ unsafe fn check_smaller_than_0xf4(current_bytes: __m256i, has_error: *mut __m256
 unsafe fn continuation_lengths(high_nibbles: __m256i) -> __m256i {
     return _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8, 1i8,
-            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8,
+            1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 3, 4, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2,
+            2, 3, 4,
         ),
         high_nibbles,
     );
@@ -291,8 +282,8 @@ unsafe fn check_utf8_bytes_ascii_path(
             _mm256_cmpgt_epi8(
                 (*previous).carried_continuations,
                 _mm256_setr_epi8(
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
+                    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+                    9, 9, 9, 9, 9, 1,
                 ),
             ),
             *has_error,
@@ -318,25 +309,25 @@ unsafe fn check_utf8_bytes_ascii_path(
     return pb;
 }
 
-pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: size_t) -> bool {
-    let mut i: size_t = 0u64;
+pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: usize) -> bool {
+    let mut i = 0;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
-    if len >= 32u64 {
-        while i <= len.wrapping_sub(32u64) {
+    if len >= 32 {
+        while i <= len.wrapping_sub(32) {
             let current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes_ascii_path(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(32u64)
+            i = (i).wrapping_add(32)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 32] = [0; 32];
-        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 32u64);
-        memcpy(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            src.offset(i as isize) as *const libc::c_void,
+        ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
+        ptr::copy(
+            src.offset(i as isize),
+            buffer.as_mut_ptr(),
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
@@ -346,8 +337,8 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: size_
             _mm256_cmpgt_epi8(
                 previous.carried_continuations,
                 _mm256_setr_epi8(
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
+                    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+                    9, 9, 9, 9, 9, 1,
                 ),
             ),
             has_error,
@@ -356,25 +347,25 @@ pub unsafe fn validate_utf8_fast_ascii_path(src: *const libc::c_char, len: size_
     return _mm256_testz_si256(has_error, has_error) != 0;
 }
 
-pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool {
-    let mut i: size_t = 0u64;
+pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: usize) -> bool {
+    let mut i = 0;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous = ProcessedUtfBytes::default();
-    if len >= 32u64 {
-        while i <= len.wrapping_sub(32u64) {
+    if len >= 32 {
+        while i <= len.wrapping_sub(32) {
             let current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = check_utf8_bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i).wrapping_add(32u64)
+            i = (i).wrapping_add(32)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 32] = [0; 32];
-        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 32u64);
-        memcpy(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            src.offset(i as isize) as *const libc::c_void,
+        ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
+        ptr::copy(
+            src.offset(i as isize),
+            buffer.as_mut_ptr(),
             len.wrapping_sub(i),
         );
         let current_bytes_0: __m256i = _mm256_loadu_si256(buffer.as_mut_ptr() as *const __m256i);
@@ -384,8 +375,8 @@ pub unsafe fn validate_utf8_fast(src: *const libc::c_char, len: size_t) -> bool 
             _mm256_cmpgt_epi8(
                 previous.carried_continuations,
                 _mm256_setr_epi8(
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
-                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
+                    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+                    9, 9, 9, 9, 9, 1,
                 ),
             ),
             has_error,
