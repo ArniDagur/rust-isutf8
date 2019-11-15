@@ -1,5 +1,3 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
 #[cfg(target_arch = "x86")]
 pub use std::arch::x86::{
     __m256i, _mm256_add_epi8, _mm256_alignr_epi8, _mm256_and_si256, _mm256_cmpeq_epi8,
@@ -14,12 +12,12 @@ pub use std::arch::x86_64::{
     _mm256_set1_epi8, _mm256_set_epi8, _mm256_setr_epi8, _mm256_setzero_si256, _mm256_shuffle_epi8,
     _mm256_srli_epi16, _mm256_subs_epu8, _mm256_testz_si256,
 };
+
 extern "C" {
-    #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
 }
+
 /* defined(__need_ptrdiff_t) */
 /* Always define size_t when modules are available. */
 pub type size_t = libc::c_ulong;
@@ -28,6 +26,7 @@ pub type size_t = libc::c_ulong;
 pub struct __loadu_si256 {
     pub __v: __m256i,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct avx_processed_utf_bytes {
@@ -35,6 +34,7 @@ pub struct avx_processed_utf_bytes {
     pub high_nibbles: __m256i,
     pub carried_continuations: __m256i,
 }
+
 /*
  * legal utf-8 byte sequence
  * http://www.unicode.org/versions/Unicode6.0.0/ch03.pdf - page 94
@@ -59,6 +59,7 @@ unsafe fn push_last_byte_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
         15 as libc::c_int,
     );
 }
+
 #[inline]
 unsafe fn push_last_2bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(
@@ -67,6 +68,7 @@ unsafe fn push_last_2bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i 
         14 as libc::c_int,
     );
 }
+
 // all byte values must be no larger than 0xF4
 #[inline]
 unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mut __m256i) {
@@ -79,6 +81,7 @@ unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mu
         ),
     );
 }
+
 #[inline]
 unsafe fn avxcontinuationLengths(mut high_nibbles: __m256i) -> __m256i {
     return _mm256_shuffle_epi8(
@@ -119,6 +122,7 @@ unsafe fn avxcontinuationLengths(mut high_nibbles: __m256i) -> __m256i {
         high_nibbles,
     );
 }
+
 #[inline]
 unsafe fn avxcarryContinuations(
     mut initial_lengths: __m256i,
@@ -135,6 +139,7 @@ unsafe fn avxcarryContinuations(
     );
     return _mm256_add_epi8(sum, right2);
 }
+
 #[inline]
 unsafe fn avxcheckContinuations(
     mut initial_lengths: __m256i,
@@ -150,6 +155,7 @@ unsafe fn avxcheckContinuations(
     );
     *has_error = _mm256_or_si256(*has_error, overunder);
 }
+
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
 // next byte must be continuation, ie sign bit is set, so signed < is ok
@@ -183,6 +189,7 @@ unsafe fn avxcheckFirstContinuationMax(
     );
     *has_error = _mm256_or_si256(*has_error, _mm256_or_si256(badfollowED, badfollowF4));
 }
+
 // map off1_hibits => error condition
 // hibits     off1    cur
 // C       => < C2 && true
@@ -276,6 +283,7 @@ unsafe fn avxcheckOverlong(
     let mut second_under: __m256i = _mm256_cmpgt_epi8(second_mins, current_bytes);
     *has_error = _mm256_or_si256(*has_error, _mm256_and_si256(initial_under, second_under));
 }
+
 #[inline]
 unsafe fn avx_count_nibbles(mut bytes: __m256i, mut answer: *mut avx_processed_utf_bytes) {
     (*answer).rawbytes = bytes;
@@ -284,9 +292,9 @@ unsafe fn avx_count_nibbles(mut bytes: __m256i, mut answer: *mut avx_processed_u
         _mm256_set1_epi8(0xf as libc::c_int as libc::c_char),
     );
 }
+
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
-#[no_mangle]
 pub unsafe fn avxcheckUTF8Bytes(
     mut current_bytes: __m256i,
     mut previous: *mut avx_processed_utf_bytes,
@@ -315,9 +323,9 @@ pub unsafe fn avxcheckUTF8Bytes(
     );
     return pb;
 }
+
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
-#[no_mangle]
 pub unsafe fn avxcheckUTF8Bytes_asciipath(
     mut current_bytes: __m256i,
     mut previous: *mut avx_processed_utf_bytes,
@@ -394,7 +402,7 @@ pub unsafe fn avxcheckUTF8Bytes_asciipath(
     );
     return pb;
 }
-#[no_mangle]
+
 pub unsafe fn validate_utf8_fast_avx_asciipath(
     mut src: *const libc::c_char,
     mut len: size_t,
@@ -478,7 +486,7 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
     }
     return _mm256_testz_si256(has_error, has_error) != 0;
 }
-#[no_mangle]
+
 pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size_t) -> bool {
     let mut i: size_t = 0 as libc::c_int as size_t;
     let mut has_error: __m256i = _mm256_setzero_si256();

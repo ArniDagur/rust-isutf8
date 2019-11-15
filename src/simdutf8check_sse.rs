@@ -1,5 +1,3 @@
-#![allow(dead_code, mutable_transmutes, non_camel_case_types, non_snake_case,
-         non_upper_case_globals, unused_assignments, unused_mut)]
 #[cfg(target_arch = "x86")]
 pub use std::arch::x86::{
     __m128i, _mm_add_epi8, _mm_alignr_epi8, _mm_and_si128, _mm_cmpeq_epi8, _mm_cmpgt_epi8,
@@ -12,12 +10,12 @@ pub use std::arch::x86_64::{
     _mm_loadu_si128, _mm_or_si128, _mm_set1_epi8, _mm_set_epi8, _mm_setr_epi8, _mm_setzero_si128,
     _mm_shuffle_epi8, _mm_srli_epi16, _mm_subs_epu8, _mm_testz_si128,
 };
+
 extern "C" {
-    #[no_mangle]
     fn memcpy(_: *mut libc::c_void, _: *const libc::c_void, _: libc::c_ulong) -> *mut libc::c_void;
-    #[no_mangle]
     fn memset(_: *mut libc::c_void, _: libc::c_int, _: libc::c_ulong) -> *mut libc::c_void;
 }
+
 /* defined(__need_ptrdiff_t) */
 /* Always define size_t when modules are available. */
 pub type size_t = libc::c_ulong;
@@ -26,6 +24,7 @@ pub type size_t = libc::c_ulong;
 pub struct __loadu_si128 {
     pub __v: __m128i,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct processed_utf_bytes {
@@ -33,6 +32,7 @@ pub struct processed_utf_bytes {
     pub high_nibbles: __m128i,
     pub carried_continuations: __m128i,
 }
+
 /*
  * legal utf-8 byte sequence
  * http://www.unicode.org/versions/Unicode6.0.0/ch03.pdf - page 94
@@ -49,6 +49,7 @@ pub struct processed_utf_bytes {
  * U+100000..U+10FFFF F4       80..8F   80..BF   80..BF
  *
  */
+
 // all byte values must be no larger than 0xF4
 #[inline]
 unsafe fn checkSmallerThan0xF4(mut current_bytes: __m128i, mut has_error: *mut __m128i) {
@@ -61,6 +62,7 @@ unsafe fn checkSmallerThan0xF4(mut current_bytes: __m128i, mut has_error: *mut _
         ),
     );
 }
+
 #[inline]
 unsafe fn continuationLengths(mut high_nibbles: __m128i) -> __m128i {
     return _mm_shuffle_epi8(
@@ -85,6 +87,7 @@ unsafe fn continuationLengths(mut high_nibbles: __m128i) -> __m128i {
         high_nibbles,
     );
 }
+
 #[inline]
 unsafe fn carryContinuations(
     mut initial_lengths: __m128i,
@@ -105,6 +108,7 @@ unsafe fn carryContinuations(
     );
     return _mm_add_epi8(sum, right2);
 }
+
 #[inline]
 unsafe fn checkContinuations(
     mut initial_lengths: __m128i,
@@ -120,6 +124,7 @@ unsafe fn checkContinuations(
     );
     *has_error = _mm_or_si128(*has_error, overunder);
 }
+
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
 // next byte must be continuation, ie sign bit is set, so signed < is ok
@@ -153,6 +158,7 @@ unsafe fn checkFirstContinuationMax(
     );
     *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
 }
+
 // map off1_hibits => error condition
 // hibits     off1    cur
 // C       => < C2 && true
@@ -218,6 +224,7 @@ unsafe fn checkOverlong(
     let mut second_under: __m128i = _mm_cmpgt_epi8(second_mins, current_bytes);
     *has_error = _mm_or_si128(*has_error, _mm_and_si128(initial_under, second_under));
 }
+
 #[inline]
 unsafe fn count_nibbles(mut bytes: __m128i, mut answer: *mut processed_utf_bytes) {
     (*answer).rawbytes = bytes;
@@ -226,9 +233,9 @@ unsafe fn count_nibbles(mut bytes: __m128i, mut answer: *mut processed_utf_bytes
         _mm_set1_epi8(0xf as libc::c_int as libc::c_char),
     );
 }
+
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
-#[no_mangle]
 pub unsafe fn checkUTF8Bytes(
     mut current_bytes: __m128i,
     mut previous: *mut processed_utf_bytes,
@@ -260,7 +267,7 @@ pub unsafe fn checkUTF8Bytes(
     );
     return pb;
 }
-#[no_mangle]
+
 pub unsafe fn validate_utf8_fast(mut src: *const libc::c_char, mut len: size_t) -> bool {
     let mut i: size_t = 0 as libc::c_int as size_t;
     let mut has_error: __m128i = _mm_setzero_si128();
