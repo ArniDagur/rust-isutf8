@@ -22,14 +22,15 @@ extern "C" {
 /* defined(__need_ptrdiff_t) */
 /* Always define size_t when modules are available. */
 pub type size_t = libc::c_ulong;
-#[derive(Copy, Clone)]
+
 #[repr(C, packed)]
+#[derive(Copy, Clone)]
 pub struct __loadu_si256 {
     pub __v: __m256i,
 }
 
-#[derive(Copy, Clone)]
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct avx_processed_utf_bytes {
     pub rawbytes: __m256i,
     pub high_nibbles: __m256i,
@@ -66,20 +67,12 @@ impl Default for avx_processed_utf_bytes {
  */
 #[inline]
 unsafe fn push_last_byte_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
-    return _mm256_alignr_epi8(
-        b,
-        _mm256_permute2x128_si256(a, b, 0x21 as libc::c_int),
-        15 as libc::c_int,
-    );
+    return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 15i32);
 }
 
 #[inline]
 unsafe fn push_last_2bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
-    return _mm256_alignr_epi8(
-        b,
-        _mm256_permute2x128_si256(a, b, 0x21 as libc::c_int),
-        14 as libc::c_int,
-    );
+    return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 14i32);
 }
 
 // all byte values must be no larger than 0xF4
@@ -88,10 +81,7 @@ unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mu
     // unsigned, saturates to 0 below max
     *has_error = _mm256_or_si256(
         *has_error,
-        _mm256_subs_epu8(
-            current_bytes,
-            _mm256_set1_epi8(0xf4 as libc::c_int as libc::c_char),
-        ),
+        _mm256_subs_epu8(current_bytes, _mm256_set1_epi8(0xf4i32 as libc::c_char)),
     );
 }
 
@@ -99,38 +89,8 @@ unsafe fn avxcheckSmallerThan0xF4(mut current_bytes: __m256i, mut has_error: *mu
 unsafe fn avxcontinuationLengths(mut high_nibbles: __m256i) -> __m256i {
     return _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            3 as libc::c_int as libc::c_char,
-            4 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            3 as libc::c_int as libc::c_char,
-            4 as libc::c_int as libc::c_char,
+            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8, 1i8,
+            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8,
         ),
         high_nibbles,
     );
@@ -143,12 +103,12 @@ unsafe fn avxcarryContinuations(
 ) -> __m256i {
     let mut right1: __m256i = _mm256_subs_epu8(
         push_last_byte_of_a_to_b(previous_carries, initial_lengths),
-        _mm256_set1_epi8(1 as libc::c_int as libc::c_char),
+        _mm256_set1_epi8(1i8),
     );
     let mut sum: __m256i = _mm256_add_epi8(initial_lengths, right1);
     let mut right2: __m256i = _mm256_subs_epu8(
         push_last_2bytes_of_a_to_b(previous_carries, sum),
-        _mm256_set1_epi8(2 as libc::c_int as libc::c_char),
+        _mm256_set1_epi8(2i8),
     );
     return _mm256_add_epi8(sum, right2);
 }
@@ -180,24 +140,18 @@ unsafe fn avxcheckFirstContinuationMax(
 ) {
     let mut maskED: __m256i = _mm256_cmpeq_epi8(
         off1_current_bytes,
-        _mm256_set1_epi8(0xed as libc::c_int as libc::c_char),
+        _mm256_set1_epi8(0xedi32 as libc::c_char),
     );
     let mut maskF4: __m256i = _mm256_cmpeq_epi8(
         off1_current_bytes,
-        _mm256_set1_epi8(0xf4 as libc::c_int as libc::c_char),
+        _mm256_set1_epi8(0xf4i32 as libc::c_char),
     );
     let mut badfollowED: __m256i = _mm256_and_si256(
-        _mm256_cmpgt_epi8(
-            current_bytes,
-            _mm256_set1_epi8(0x9f as libc::c_int as libc::c_char),
-        ),
+        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x9fi32 as libc::c_char)),
         maskED,
     );
     let mut badfollowF4: __m256i = _mm256_and_si256(
-        _mm256_cmpgt_epi8(
-            current_bytes,
-            _mm256_set1_epi8(0x8f as libc::c_int as libc::c_char),
-        ),
+        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x8fi32 as libc::c_char)),
         maskF4,
     );
     *has_error = _mm256_or_si256(*has_error, _mm256_or_si256(badfollowED, badfollowF4));
@@ -220,76 +174,76 @@ unsafe fn avxcheckOverlong(
     let mut off1_hibits: __m256i = push_last_byte_of_a_to_b(previous_hibits, hibits);
     let mut initial_mins: __m256i = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xc2 as libc::c_int as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xe1 as libc::c_int as libc::c_char,
-            0xf1 as libc::c_int as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xc2 as libc::c_int as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xe1 as libc::c_int as libc::c_char,
-            0xf1 as libc::c_int as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xc2i32 as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xe1i32 as libc::c_char,
+            0xf1i32 as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xc2i32 as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xe1i32 as libc::c_char,
+            0xf1i32 as libc::c_char,
         ),
         off1_hibits,
     );
     let mut initial_under: __m256i = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
     let mut second_mins: __m256i = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            0xa0 as libc::c_int as libc::c_char,
-            0x90 as libc::c_int as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            0xa0 as libc::c_int as libc::c_char,
-            0x90 as libc::c_int as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            127i8,
+            127i8,
+            0xa0i32 as libc::c_char,
+            0x90i32 as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            127i8,
+            127i8,
+            0xa0i32 as libc::c_char,
+            0x90i32 as libc::c_char,
         ),
         off1_hibits,
     );
@@ -300,10 +254,8 @@ unsafe fn avxcheckOverlong(
 #[inline]
 unsafe fn avx_count_nibbles(mut bytes: __m256i, mut answer: *mut avx_processed_utf_bytes) {
     (*answer).rawbytes = bytes;
-    (*answer).high_nibbles = _mm256_and_si256(
-        _mm256_srli_epi16(bytes, 4 as libc::c_int),
-        _mm256_set1_epi8(0xf as libc::c_int as libc::c_char),
-    );
+    (*answer).high_nibbles =
+        _mm256_and_si256(_mm256_srli_epi16(bytes, 4i32), _mm256_set1_epi8(0xfi8));
 }
 
 // check whether the current bytes are valid UTF-8
@@ -340,48 +292,14 @@ pub unsafe fn avxcheckUTF8Bytes_asciipath(
     mut previous: *mut avx_processed_utf_bytes,
     mut has_error: *mut __m256i,
 ) -> avx_processed_utf_bytes {
-    if _mm256_testz_si256(
-        current_bytes,
-        _mm256_set1_epi8(0x80 as libc::c_int as libc::c_char),
-    ) != 0
-    {
+    if _mm256_testz_si256(current_bytes, _mm256_set1_epi8(0x80i32 as libc::c_char)) != 0 {
         // fast ascii path
         *has_error = _mm256_or_si256(
             _mm256_cmpgt_epi8(
                 (*previous).carried_continuations,
                 _mm256_setr_epi8(
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    1 as libc::c_int as libc::c_char,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
                 ),
             ),
             *has_error,
@@ -416,29 +334,24 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
     mut src: *const libc::c_char,
     mut len: size_t,
 ) -> bool {
-    let mut i: size_t = 0 as libc::c_int as size_t;
+    let mut i: size_t = 0u64;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
         let mut init = avx_processed_utf_bytes::default();
         init
     };
-    if len >= 32 as libc::c_int as libc::c_ulong {
-        while i <= len.wrapping_sub(32 as libc::c_int as libc::c_ulong) {
+    if len >= 32u64 {
+        while i <= len.wrapping_sub(32u64) {
             let mut current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = avxcheckUTF8Bytes_asciipath(current_bytes, &mut previous, &mut has_error);
-            i = (i as libc::c_ulong).wrapping_add(32 as libc::c_int as libc::c_ulong) as size_t
-                as size_t
+            i = (i).wrapping_add(32u64)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 32] = [0; 32];
-        memset(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            0 as libc::c_int,
-            32 as libc::c_int as libc::c_ulong,
-        );
+        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 32u64);
         memcpy(
             buffer.as_mut_ptr() as *mut libc::c_void,
             src.offset(i as isize) as *const libc::c_void,
@@ -452,38 +365,8 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
             _mm256_cmpgt_epi8(
                 previous.carried_continuations,
                 _mm256_setr_epi8(
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    1 as libc::c_int as libc::c_char,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
                 ),
             ),
             has_error,
@@ -493,29 +376,24 @@ pub unsafe fn validate_utf8_fast_avx_asciipath(
 }
 
 pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size_t) -> bool {
-    let mut i: size_t = 0 as libc::c_int as size_t;
+    let mut i: size_t = 0u64;
     let mut has_error: __m256i = _mm256_setzero_si256();
     let mut previous: avx_processed_utf_bytes = {
         let mut init = avx_processed_utf_bytes::default();
         init
     };
-    if len >= 32 as libc::c_int as libc::c_ulong {
-        while i <= len.wrapping_sub(32 as libc::c_int as libc::c_ulong) {
+    if len >= 32u64 {
+        while i <= len.wrapping_sub(32u64) {
             let mut current_bytes: __m256i =
                 _mm256_loadu_si256(src.offset(i as isize) as *const __m256i);
             previous = avxcheckUTF8Bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i as libc::c_ulong).wrapping_add(32 as libc::c_int as libc::c_ulong) as size_t
-                as size_t
+            i = (i).wrapping_add(32u64)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 32] = [0; 32];
-        memset(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            0 as libc::c_int,
-            32 as libc::c_int as libc::c_ulong,
-        );
+        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 32u64);
         memcpy(
             buffer.as_mut_ptr() as *mut libc::c_void,
             src.offset(i as isize) as *const libc::c_void,
@@ -529,38 +407,8 @@ pub unsafe fn validate_utf8_fast_avx(mut src: *const libc::c_char, mut len: size
             _mm256_cmpgt_epi8(
                 previous.carried_continuations,
                 _mm256_setr_epi8(
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    1 as libc::c_int as libc::c_char,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
                 ),
             ),
             has_error,

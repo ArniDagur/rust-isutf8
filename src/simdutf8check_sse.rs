@@ -20,14 +20,15 @@ extern "C" {
 /* defined(__need_ptrdiff_t) */
 /* Always define size_t when modules are available. */
 pub type size_t = libc::c_ulong;
-#[derive(Copy, Clone)]
+
 #[repr(C, packed)]
+#[derive(Copy, Clone)]
 pub struct __loadu_si128 {
     pub __v: __m128i,
 }
 
-#[derive(Copy, Clone)]
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct processed_utf_bytes {
     pub rawbytes: __m128i,
     pub high_nibbles: __m128i,
@@ -69,10 +70,7 @@ unsafe fn checkSmallerThan0xF4(mut current_bytes: __m128i, mut has_error: *mut _
     // unsigned, saturates to 0 below max
     *has_error = _mm_or_si128(
         *has_error,
-        _mm_subs_epu8(
-            current_bytes,
-            _mm_set1_epi8(0xf4 as libc::c_int as libc::c_char),
-        ),
+        _mm_subs_epu8(current_bytes, _mm_set1_epi8(0xf4i32 as libc::c_char)),
     );
 }
 
@@ -80,22 +78,7 @@ unsafe fn checkSmallerThan0xF4(mut current_bytes: __m128i, mut has_error: *mut _
 unsafe fn continuationLengths(mut high_nibbles: __m128i) -> __m128i {
     return _mm_shuffle_epi8(
         _mm_setr_epi8(
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            1 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            0 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            2 as libc::c_int as libc::c_char,
-            3 as libc::c_int as libc::c_char,
-            4 as libc::c_int as libc::c_char,
+            1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 1i8, 0i8, 0i8, 0i8, 0i8, 2i8, 2i8, 3i8, 4i8,
         ),
         high_nibbles,
     );
@@ -107,17 +90,13 @@ unsafe fn carryContinuations(
     mut previous_carries: __m128i,
 ) -> __m128i {
     let mut right1: __m128i = _mm_subs_epu8(
-        _mm_alignr_epi8(
-            initial_lengths,
-            previous_carries,
-            16 as libc::c_int - 1 as libc::c_int,
-        ),
-        _mm_set1_epi8(1 as libc::c_int as libc::c_char),
+        _mm_alignr_epi8(initial_lengths, previous_carries, 16i32 - 1i32),
+        _mm_set1_epi8(1i8),
     );
     let mut sum: __m128i = _mm_add_epi8(initial_lengths, right1);
     let mut right2: __m128i = _mm_subs_epu8(
-        _mm_alignr_epi8(sum, previous_carries, 16 as libc::c_int - 2 as libc::c_int),
-        _mm_set1_epi8(2 as libc::c_int as libc::c_char),
+        _mm_alignr_epi8(sum, previous_carries, 16i32 - 2i32),
+        _mm_set1_epi8(2i8),
     );
     return _mm_add_epi8(sum, right2);
 }
@@ -147,26 +126,16 @@ unsafe fn checkFirstContinuationMax(
     mut off1_current_bytes: __m128i,
     mut has_error: *mut __m128i,
 ) {
-    let mut maskED: __m128i = _mm_cmpeq_epi8(
-        off1_current_bytes,
-        _mm_set1_epi8(0xed as libc::c_int as libc::c_char),
-    );
-    let mut maskF4: __m128i = _mm_cmpeq_epi8(
-        off1_current_bytes,
-        _mm_set1_epi8(0xf4 as libc::c_int as libc::c_char),
-    );
+    let mut maskED: __m128i =
+        _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xedi32 as libc::c_char));
+    let mut maskF4: __m128i =
+        _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xf4i32 as libc::c_char));
     let mut badfollowED: __m128i = _mm_and_si128(
-        _mm_cmpgt_epi8(
-            current_bytes,
-            _mm_set1_epi8(0x9f as libc::c_int as libc::c_char),
-        ),
+        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x9fi32 as libc::c_char)),
         maskED,
     );
     let mut badfollowF4: __m128i = _mm_and_si128(
-        _mm_cmpgt_epi8(
-            current_bytes,
-            _mm_set1_epi8(0x8f as libc::c_int as libc::c_char),
-        ),
+        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x8fi32 as libc::c_char)),
         maskF4,
     );
     *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
@@ -186,51 +155,47 @@ unsafe fn checkOverlong(
     mut previous_hibits: __m128i,
     mut has_error: *mut __m128i,
 ) {
-    let mut off1_hibits: __m128i = _mm_alignr_epi8(
-        hibits,
-        previous_hibits,
-        16 as libc::c_int - 1 as libc::c_int,
-    );
+    let mut off1_hibits: __m128i = _mm_alignr_epi8(hibits, previous_hibits, 16i32 - 1i32);
     let mut initial_mins: __m128i = _mm_shuffle_epi8(
         _mm_setr_epi8(
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xc2 as libc::c_int as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            0xe1 as libc::c_int as libc::c_char,
-            0xf1 as libc::c_int as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xc2i32 as libc::c_char,
+            -(128i32) as libc::c_char,
+            0xe1i32 as libc::c_char,
+            0xf1i32 as libc::c_char,
         ),
         off1_hibits,
     );
     let mut initial_under: __m128i = _mm_cmpgt_epi8(initial_mins, off1_current_bytes);
     let mut second_mins: __m128i = _mm_shuffle_epi8(
         _mm_setr_epi8(
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            -(128 as libc::c_int) as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            127 as libc::c_int as libc::c_char,
-            0xa0 as libc::c_int as libc::c_char,
-            0x90 as libc::c_int as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            -(128i32) as libc::c_char,
+            127i8,
+            127i8,
+            0xa0i32 as libc::c_char,
+            0x90i32 as libc::c_char,
         ),
         off1_hibits,
     );
@@ -241,10 +206,7 @@ unsafe fn checkOverlong(
 #[inline]
 unsafe fn count_nibbles(mut bytes: __m128i, mut answer: *mut processed_utf_bytes) {
     (*answer).rawbytes = bytes;
-    (*answer).high_nibbles = _mm_and_si128(
-        _mm_srli_epi16(bytes, 4 as libc::c_int),
-        _mm_set1_epi8(0xf as libc::c_int as libc::c_char),
-    );
+    (*answer).high_nibbles = _mm_and_si128(_mm_srli_epi16(bytes, 4i32), _mm_set1_epi8(0xfi8));
 }
 
 // check whether the current bytes are valid UTF-8
@@ -261,11 +223,8 @@ pub unsafe fn checkUTF8Bytes(
     pb.carried_continuations =
         carryContinuations(initial_lengths, (*previous).carried_continuations);
     checkContinuations(initial_lengths, pb.carried_continuations, has_error);
-    let mut off1_current_bytes: __m128i = _mm_alignr_epi8(
-        pb.rawbytes,
-        (*previous).rawbytes,
-        16 as libc::c_int - 1 as libc::c_int,
-    );
+    let mut off1_current_bytes: __m128i =
+        _mm_alignr_epi8(pb.rawbytes, (*previous).rawbytes, 16i32 - 1i32);
     checkFirstContinuationMax(current_bytes, off1_current_bytes, has_error);
     checkOverlong(
         current_bytes,
@@ -278,29 +237,24 @@ pub unsafe fn checkUTF8Bytes(
 }
 
 pub unsafe fn validate_utf8_fast(mut src: *const libc::c_char, mut len: size_t) -> bool {
-    let mut i: size_t = 0 as libc::c_int as size_t;
+    let mut i: size_t = 0u64;
     let mut has_error: __m128i = _mm_setzero_si128();
     let mut previous: processed_utf_bytes = {
         let mut init = processed_utf_bytes::default();
         init
     };
-    if len >= 16 as libc::c_int as libc::c_ulong {
-        while i <= len.wrapping_sub(16 as libc::c_int as libc::c_ulong) {
+    if len >= 16u64 {
+        while i <= len.wrapping_sub(16u64) {
             let mut current_bytes: __m128i =
                 _mm_loadu_si128(src.offset(i as isize) as *const __m128i);
             previous = checkUTF8Bytes(current_bytes, &mut previous, &mut has_error);
-            i = (i as libc::c_ulong).wrapping_add(16 as libc::c_int as libc::c_ulong) as size_t
-                as size_t
+            i = (i).wrapping_add(16u64)
         }
     }
     // last part
     if i < len {
         let mut buffer: [libc::c_char; 16] = [0; 16];
-        memset(
-            buffer.as_mut_ptr() as *mut libc::c_void,
-            0 as libc::c_int,
-            16 as libc::c_int as libc::c_ulong,
-        );
+        memset(buffer.as_mut_ptr() as *mut libc::c_void, 0i32, 16u64);
         memcpy(
             buffer.as_mut_ptr() as *mut libc::c_void,
             src.offset(i as isize) as *const libc::c_void,
@@ -313,22 +267,7 @@ pub unsafe fn validate_utf8_fast(mut src: *const libc::c_char, mut len: size_t) 
             _mm_cmpgt_epi8(
                 previous.carried_continuations,
                 _mm_setr_epi8(
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    9 as libc::c_int as libc::c_char,
-                    1 as libc::c_int as libc::c_char,
+                    9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 9i8, 1i8,
                 ),
             ),
             has_error,
