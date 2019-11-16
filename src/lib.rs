@@ -4,8 +4,8 @@
 // Copyright (c) 2019 Árni Dagur <arni@dagur.eu> MIT license
 //
 #![no_std]
-#![feature(stdsimd)]
 #![feature(doc_cfg)]
+
 pub mod lemire;
 
 #[cfg(test)]
