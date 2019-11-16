@@ -308,7 +308,7 @@ unsafe fn check_utf8_bytes_ascii_path(
     return pb;
 }
 
-pub fn validate_utf8_fast_ascii_path(bytes: &[u8]) -> bool {
+pub fn validate_utf8_fast_ascii_path(bytes: &[u8]) -> Result<(), usize> {
     unsafe {
         let len = bytes.len();
         let mut i = 0;
@@ -346,11 +346,17 @@ pub fn validate_utf8_fast_ascii_path(bytes: &[u8]) -> bool {
                 has_error,
             )
         }
-        return _mm256_testz_si256(has_error, has_error) != 0;
+
+        let is_valid =_mm256_testz_si256(has_error, has_error) != 0;
+        if is_valid {
+            return Ok(());
+        } else {
+            return Err(0);
+        }
     }
 }
 
-pub fn validate_utf8_fast(bytes: &[u8]) -> bool {
+pub fn validate_utf8_fast(bytes: &[u8]) -> Result<(), usize> {
     unsafe {
         let len = bytes.len();
         let mut i = 0;
@@ -387,6 +393,12 @@ pub fn validate_utf8_fast(bytes: &[u8]) -> bool {
                 has_error,
             )
         }
-        return _mm256_testz_si256(has_error, has_error) != 0;
+
+        let is_valid =_mm256_testz_si256(has_error, has_error) != 0;
+        if is_valid {
+            return Ok(());
+        } else {
+            return Err(0);
+        }
     }
 }
