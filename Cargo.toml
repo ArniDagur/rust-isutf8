@@ -1,7 +1,10 @@
 [package]
 name = "isutf8"
 version = "0.1.0"
+license = "Apache-2.0"
 authors = ["Árni Dagur <arni@dagur.eu>"]
+description = "Provides functions to determine if a sequence of bytes is valid utf-8."
+repository = "https://github.com/ArniDagur/rust-isutf8"
 edition = "2018"
 
 [package.metadata.docs.rs]
