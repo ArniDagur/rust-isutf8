@@ -197,13 +197,19 @@ mod tests {
 
     #[test]
     fn test_lemire_avx() {
-        use super::lemire::avx::validate_utf8_fast;
-        create_tests!(validate_utf8_fast);
+        use super::lemire::avx::is_utf8;
+        create_tests!(is_utf8);
+    }
+
+    #[test]
+    fn test_lemire_avx_ascii() {
+        use super::lemire::avx::is_utf8_ascii_path;
+        create_tests!(is_utf8_ascii_path);
     }
 
     #[test]
     fn test_lemire_sse() {
-        use super::lemire::sse::validate_utf8_fast;
-        create_tests!(validate_utf8_fast);
+        use super::lemire::sse::is_utf8;
+        create_tests!(is_utf8);
     }
 }

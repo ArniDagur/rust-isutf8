@@ -308,7 +308,7 @@ unsafe fn check_utf8_bytes_ascii_path(
     return pb;
 }
 
-pub fn validate_utf8_fast_ascii_path(bytes: &[u8]) -> bool {
+pub fn is_utf8_ascii_path(bytes: &[u8]) -> bool {
     unsafe {
         let len = bytes.len();
         let mut i = 0;
@@ -350,7 +350,7 @@ pub fn validate_utf8_fast_ascii_path(bytes: &[u8]) -> bool {
     }
 }
 
-pub fn validate_utf8_fast(bytes: &[u8]) -> bool {
+pub fn is_utf8(bytes: &[u8]) -> bool {
     unsafe {
         let len = bytes.len();
         let mut i = 0;
