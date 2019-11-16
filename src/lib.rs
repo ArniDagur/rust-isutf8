@@ -9,9 +9,21 @@
 pub mod lemire;
 
 #[cfg(test)]
+#[macro_use]
+extern crate std;
+
+#[cfg(test)]
 mod tests {
+    static UTF8_SAMPLE_OK: &'static str = include_str!("../props/utf8_sample_ok.txt");
+    static ASCII_SAMPLE_OK: &'static str = include_str!("../props/ascii_sample_ok.txt");
+    static MOSTLY_ASCII_SAMPLE_OK: &'static str = include_str!("../props/mostly_ascii_sample_ok.txt");
+    static RANDOM_BYTES: &'static [u8; 524288] = include_bytes!("../props/random_bytes.bin");
+
     macro_rules! create_tests {
+        // Adapted test suite from gnzlbg:
+        // https://github.com/gnzlbg/is_utf8/blob/f34c49e5b041bbc49f17a4110799980411e9ccb3/src/lib.rs
         ($test_function:ident) => {
+            // deny overlong encodings
             assert_eq!($test_function(&[0xc0, 0x80]), false);
             assert_eq!($test_function(&[0xc0, 0xae]), false);
             assert_eq!($test_function(&[0xe0, 0x80, 0x80]), false);
@@ -192,6 +204,12 @@ mod tests {
             assert_eq!($test_function(&[0xed, 0xae, 0x80, 0xed, 0xbf, 0xbf]), false);
             assert_eq!($test_function(&[0xed, 0xaf, 0xbf, 0xed, 0xb0, 0x80]), false);
             assert_eq!($test_function(&[0xed, 0xaf, 0xbf, 0xed, 0xbf, 0xbf]), false);
+
+            // Test data from files in the `../props` directory.
+            assert_eq!($test_function(UTF8_SAMPLE_OK.as_bytes()), true);
+            assert_eq!($test_function(ASCII_SAMPLE_OK.as_bytes()), true);
+            assert_eq!($test_function(MOSTLY_ASCII_SAMPLE_OK.as_bytes()), true);
+            assert_eq!($test_function(RANDOM_BYTES), false);
         }
     }
 
