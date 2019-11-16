@@ -210,7 +210,7 @@ unsafe fn check_utf8_bytes(
     return pb;
 }
 
-pub fn validate_utf8_fast(bytes: &[u8]) -> Result<(), usize> {
+pub fn validate_utf8_fast(bytes: &[u8]) -> bool {
     unsafe {
         let len = bytes.len();
         let mut i = 0;
@@ -244,12 +244,6 @@ pub fn validate_utf8_fast(bytes: &[u8]) -> Result<(), usize> {
                 has_error,
             )
         }
-
-        let is_valid = _mm_testz_si128(has_error, has_error) != 0;
-        if is_valid {
-            return Ok(());
-        } else {
-            return Err(0);
-        }
+        return _mm_testz_si128(has_error, has_error) != 0;
     }
 }
