@@ -9,19 +9,15 @@
 pub mod avx;
 #[cfg(any(
     all(
-        target_feature = "sse",
         target_feature = "sse2",
-        target_feature = "sse3",
+        target_feature = "ssse3",
         target_feature = "sse4.1",
-        target_feature = "sse4.2"
     ),
     dox
 ))]
 #[doc(cfg(all(
-    target_feature = "sse",
     target_feature = "sse2",
-    target_feature = "sse3",
+    target_feature = "ssse3",
     target_feature = "sse4.1",
-    target_feature = "sse4.2",
 )))]
 pub mod sse;

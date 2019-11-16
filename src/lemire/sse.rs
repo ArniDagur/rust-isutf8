@@ -1,3 +1,26 @@
+//! # SSE implementation of Lemire's algorithm
+//!
+//! ## Target specific intrinsics used:
+//! ### SSE2
+//! * _mm_add_epi8
+//! * _mm_and_si128
+//! * _mm_cmpeq_epi8
+//! * _mm_cmpgt_epi8
+//! * _mm_loadu_si128
+//! * _mm_or_si128
+//! * _mm_set1_epi8
+//! * _mm_set_epi8
+//! * _mm_setr_epi8
+//! * _mm_setzero_si128
+//! * _mm_srli_epi16
+//! * _mm_subs_epu8
+//!
+//! ### SSSE3
+//! * _mm_alignr_epi8
+//! * _mm_shuffle_epi8
+//!
+//! ### SSE4.1
+//! * _mm_testz_si128
 #[cfg(target_arch = "x86")]
 use core::arch::x86::{
     __m128i, _mm_add_epi8, _mm_alignr_epi8, _mm_and_si128, _mm_cmpeq_epi8, _mm_cmpgt_epi8,
