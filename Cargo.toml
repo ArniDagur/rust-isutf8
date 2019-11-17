@@ -7,7 +7,13 @@ description = "Provides functions to determine if a sequence of bytes is valid u
 repository = "https://github.com/ArniDagur/rust-isutf8"
 edition = "2018"
 
+[[bench]]
+name = "validate-utf8"
+path = "benchmarks/validate-utf8.rs"
+harness = false
+
 [package.metadata.docs.rs]
 rustdoc-args = [ "--cfg dox" ]
 
-[dependencies]
+[dev-dependencies]
+criterion = "0.3"
