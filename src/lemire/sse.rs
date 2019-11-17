@@ -78,7 +78,7 @@ unsafe fn check_smaller_than_0xf4(current_bytes: __m128i, has_error: *mut __m128
     // unsigned, saturates to 0 below max
     *has_error = _mm_or_si128(
         *has_error,
-        _mm_subs_epu8(current_bytes, _mm_set1_epi8(0xf4i32 as libc::c_char)),
+        _mm_subs_epu8(current_bytes, _mm_set1_epi8(0xF4i32 as i8)),
     );
 }
 
@@ -96,13 +96,13 @@ fn continuation_lengths(high_nibbles: __m128i) -> __m128i {
 fn carry_continuations(initial_lengths: __m128i, previous_carries: __m128i) -> __m128i {
     unsafe {
         let right1 = _mm_subs_epu8(
-            _mm_alignr_epi8(initial_lengths, previous_carries, 16i32 - 1i32),
-            _mm_set1_epi8(1i8),
+            _mm_alignr_epi8(initial_lengths, previous_carries, 16 - 1),
+            _mm_set1_epi8(1),
         );
         let sum = _mm_add_epi8(initial_lengths, right1);
         let right2 = _mm_subs_epu8(
-            _mm_alignr_epi8(sum, previous_carries, 16i32 - 2i32),
-            _mm_set1_epi8(2i8),
+            _mm_alignr_epi8(sum, previous_carries, 16 - 2),
+            _mm_set1_epi8(2),
         );
         return _mm_add_epi8(sum, right2);
     }
@@ -126,14 +126,14 @@ unsafe fn check_first_continuation_max(
     off1_current_bytes: __m128i,
     has_error: *mut __m128i,
 ) {
-    let mask_ed = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xedi32 as libc::c_char));
-    let mask_f4 = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xf4i32 as libc::c_char));
+    let mask_ed = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xEDi32 as i8));
+    let mask_f4 = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xF4i32 as i8));
     let bad_follow_ed = _mm_and_si128(
-        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x9fi32 as libc::c_char)),
+        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x9Fi32 as i8)),
         mask_ed,
     );
     let bad_follow_f4 = _mm_and_si128(
-        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x8fi32 as libc::c_char)),
+        _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x8Fi32 as i8)),
         mask_f4,
     );
     *has_error = _mm_or_si128(*has_error, _mm_or_si128(bad_follow_ed, bad_follow_f4));
@@ -153,47 +153,47 @@ unsafe fn check_overlong(
     previous_hibits: __m128i,
     has_error: *mut __m128i,
 ) {
-    let off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16i32 - 1i32);
+    let off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16 - 1);
     let initial_mins = _mm_shuffle_epi8(
         _mm_setr_epi8(
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xc2i32 as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xe1i32 as libc::c_char,
-            0xf1i32 as libc::c_char,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            0xC2i32 as i8,
+            -128,
+            0xE1i32 as i8,
+            0xF1i32 as i8,
         ),
         off1_hibits,
     );
     let initial_under = _mm_cmpgt_epi8(initial_mins, off1_current_bytes);
     let second_mins = _mm_shuffle_epi8(
         _mm_setr_epi8(
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            127i8,
-            127i8,
-            0xa0i32 as libc::c_char,
-            0x90i32 as libc::c_char,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            127,
+            127,
+            0xA0i32 as i8,
+            0x90i32 as i8,
         ),
         off1_hibits,
     );
@@ -204,8 +204,7 @@ unsafe fn check_overlong(
 #[inline]
 fn count_nibbles(bytes: __m128i, mut answer: &mut ProcessedUtfBytes) {
     answer.rawbytes = bytes;
-    answer.high_nibbles =
-        unsafe { _mm_and_si128(_mm_srli_epi16(bytes, 4i32), _mm_set1_epi8(0xfi8)) };
+    answer.high_nibbles = unsafe { _mm_and_si128(_mm_srli_epi16(bytes, 4), _mm_set1_epi8(0xF)) };
 }
 
 // check whether the current bytes are valid UTF-8
@@ -221,7 +220,7 @@ unsafe fn check_utf8_bytes(
     let initial_lengths = continuation_lengths(pb.high_nibbles);
     pb.carried_continuations = carry_continuations(initial_lengths, previous.carried_continuations);
     check_continuations(initial_lengths, pb.carried_continuations, has_error);
-    let off1_current_bytes = _mm_alignr_epi8(pb.rawbytes, previous.rawbytes, 16i32 - 1i32);
+    let off1_current_bytes = _mm_alignr_epi8(pb.rawbytes, previous.rawbytes, 16 - 1);
     check_first_continuation_max(current_bytes, off1_current_bytes, has_error);
     check_overlong(
         current_bytes,

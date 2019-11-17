@@ -16,9 +16,11 @@ extern crate std;
 mod tests {
     static UTF8_SAMPLE_OK: &'static str = include_str!("../props/utf8_sample_ok.txt");
     static ASCII_SAMPLE_OK: &'static str = include_str!("../props/ascii_sample_ok.txt");
-    static MOSTLY_ASCII_SAMPLE_OK: &'static str = include_str!("../props/mostly_ascii_sample_ok.txt");
+    static MOSTLY_ASCII_SAMPLE_OK: &'static str =
+        include_str!("../props/mostly_ascii_sample_ok.txt");
     static RANDOM_BYTES: &'static [u8; 524288] = include_bytes!("../props/random_bytes.bin");
 
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     macro_rules! create_tests {
         // Adapted test suite from gnzlbg:
         // https://github.com/gnzlbg/is_utf8/blob/f34c49e5b041bbc49f17a4110799980411e9ccb3/src/lib.rs
@@ -79,7 +81,10 @@ mod tests {
             assert_eq!($test_function(&[0x80, 0xBF, 0x80, 0xBF]), false);
             assert_eq!($test_function(&[0x80, 0xBF, 0x80, 0xBF, 0x80]), false);
             assert_eq!($test_function(&[0x80, 0xBF, 0x80, 0xBF, 0x80, 0xBF]), false);
-            assert_eq!($test_function(&[0x80, 0xBF, 0x80, 0xBF, 0x80, 0xBF, 0x80]), false);
+            assert_eq!(
+                $test_function(&[0x80, 0xBF, 0x80, 0xBF, 0x80, 0xBF, 0x80]),
+                false
+            );
 
             // 3.1.9 Sequence of all 64 possible continuation bytes (0x80-0xbf):
             #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -210,7 +215,7 @@ mod tests {
             assert_eq!($test_function(ASCII_SAMPLE_OK.as_bytes()), true);
             assert_eq!($test_function(MOSTLY_ASCII_SAMPLE_OK.as_bytes()), true);
             assert_eq!($test_function(RANDOM_BYTES), false);
-        }
+        };
     }
 
     #[test]

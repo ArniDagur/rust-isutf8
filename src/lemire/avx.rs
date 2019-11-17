@@ -75,14 +75,14 @@ impl Default for ProcessedUtfBytes {
 #[inline]
 fn push_last_byte_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     unsafe {
-        return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 15i32);
+        return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21), 15);
     }
 }
 
 #[inline]
 fn push_last_2bytes_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     unsafe {
-        return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21i32), 14i32);
+        return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21), 14);
     }
 }
 
@@ -92,7 +92,7 @@ unsafe fn check_smaller_than_0xf4(current_bytes: __m256i, has_error: *mut __m256
     // unsigned, saturates to 0 below max
     *has_error = _mm256_or_si256(
         *has_error,
-        _mm256_subs_epu8(current_bytes, _mm256_set1_epi8(0xf4i32 as libc::c_char)),
+        _mm256_subs_epu8(current_bytes, _mm256_set1_epi8(0xF4i32 as i8)),
     );
 }
 
@@ -114,12 +114,12 @@ fn carry_continuations(initial_lengths: __m256i, previous_carries: __m256i) -> _
     unsafe {
         let right1 = _mm256_subs_epu8(
             push_last_byte_of_a_to_b(previous_carries, initial_lengths),
-            _mm256_set1_epi8(1i8),
+            _mm256_set1_epi8(1),
         );
         let sum = _mm256_add_epi8(initial_lengths, right1);
         let right2 = _mm256_subs_epu8(
             push_last_2bytes_of_a_to_b(previous_carries, sum),
-            _mm256_set1_epi8(2i8),
+            _mm256_set1_epi8(2),
         );
         return _mm256_add_epi8(sum, right2);
     }
@@ -146,20 +146,14 @@ unsafe fn check_first_continuation_max(
     off1_current_bytes: __m256i,
     has_error: *mut __m256i,
 ) {
-    let mask_ed = _mm256_cmpeq_epi8(
-        off1_current_bytes,
-        _mm256_set1_epi8(0xedi32 as libc::c_char),
-    );
-    let mask_f4 = _mm256_cmpeq_epi8(
-        off1_current_bytes,
-        _mm256_set1_epi8(0xf4i32 as libc::c_char),
-    );
+    let mask_ed = _mm256_cmpeq_epi8(off1_current_bytes, _mm256_set1_epi8(0xEDi32 as i8));
+    let mask_f4 = _mm256_cmpeq_epi8(off1_current_bytes, _mm256_set1_epi8(0xF4i32 as i8));
     let bad_follow_ed = _mm256_and_si256(
-        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x9fi32 as libc::c_char)),
+        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x9Fi32 as i8)),
         mask_ed,
     );
     let bad_follow_f4 = _mm256_and_si256(
-        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x8fi32 as libc::c_char)),
+        _mm256_cmpgt_epi8(current_bytes, _mm256_set1_epi8(0x8Fi32 as i8)),
         mask_f4,
     );
     *has_error = _mm256_or_si256(*has_error, _mm256_or_si256(bad_follow_ed, bad_follow_f4));
@@ -182,76 +176,76 @@ unsafe fn check_overlong(
     let off1_hibits = push_last_byte_of_a_to_b(previous_hibits, hibits);
     let initial_mins = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xc2i32 as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xe1i32 as libc::c_char,
-            0xf1i32 as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xc2i32 as libc::c_char,
-            -(128i32) as libc::c_char,
-            0xe1i32 as libc::c_char,
-            0xf1i32 as libc::c_char,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            0xC2i32 as i8,
+            -128,
+            0xE1i32 as i8,
+            0xF1i32 as i8,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            0xC2i32 as i8,
+            -128,
+            0xE1i32 as i8,
+            0xF1i32 as i8,
         ),
         off1_hibits,
     );
     let initial_under = _mm256_cmpgt_epi8(initial_mins, off1_current_bytes);
     let second_mins = _mm256_shuffle_epi8(
         _mm256_setr_epi8(
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            127i8,
-            127i8,
-            0xa0i32 as libc::c_char,
-            0x90i32 as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            -(128i32) as libc::c_char,
-            127i8,
-            127i8,
-            0xa0i32 as libc::c_char,
-            0x90i32 as libc::c_char,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            127,
+            127,
+            0xA0i32 as i8,
+            0x90i32 as i8,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            -128,
+            127,
+            127,
+            0xA0i32 as i8,
+            0x90i32 as i8,
         ),
         off1_hibits,
     );
@@ -263,7 +257,7 @@ unsafe fn check_overlong(
 fn count_nibbles(bytes: __m256i, mut answer: &mut ProcessedUtfBytes) {
     answer.rawbytes = bytes;
     answer.high_nibbles =
-        unsafe { _mm256_and_si256(_mm256_srli_epi16(bytes, 4i32), _mm256_set1_epi8(0xfi8)) };
+        unsafe { _mm256_and_si256(_mm256_srli_epi16(bytes, 4), _mm256_set1_epi8(0xF)) };
 }
 
 // check whether the current bytes are valid UTF-8
@@ -298,7 +292,7 @@ unsafe fn check_utf8_bytes_ascii_path(
     previous: &mut ProcessedUtfBytes,
     has_error: *mut __m256i,
 ) -> ProcessedUtfBytes {
-    if _mm256_testz_si256(current_bytes, _mm256_set1_epi8(0x80i32 as libc::c_char)) != 0 {
+    if _mm256_testz_si256(current_bytes, _mm256_set1_epi8(0x80i32 as i8)) != 0 {
         // fast ascii path
         *has_error = _mm256_or_si256(
             _mm256_cmpgt_epi8(
