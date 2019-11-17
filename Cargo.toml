@@ -15,5 +15,8 @@ harness = false
 [package.metadata.docs.rs]
 rustdoc-args = [ "--cfg dox" ]
 
+[dependencies]
+libc = "0.2"
+
 [dev-dependencies]
 criterion = "0.3"

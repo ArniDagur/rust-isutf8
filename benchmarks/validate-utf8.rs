@@ -36,7 +36,10 @@ bench!(mostly_ascii, "../props/mostly_ascii_sample_ok.txt");
 bench!(ascii, "../props/ascii_sample_ok.txt");
 bench!(utf8, "../props/utf8_sample_ok.txt");
 bench!(all_utf8, "../props/utf8-characters-0-0x10ffff.txt");
-bench!(all_utf8_with_garbage, "../props/utf8-characters-0-0x10ffff-with-garbage.bin");
+bench!(
+    all_utf8_with_garbage,
+    "../props/utf8-characters-0-0x10ffff-with-garbage.bin"
+);
 
 criterion_group!(
     benches,
