@@ -18,6 +18,10 @@ mod tests {
     static ASCII_SAMPLE_OK: &'static str = include_str!("../props/ascii_sample_ok.txt");
     static MOSTLY_ASCII_SAMPLE_OK: &'static str =
         include_str!("../props/mostly_ascii_sample_ok.txt");
+    static ALL_UTF8_CHARACTERS: &'static str =
+        include_str!("../props/utf8-characters-0-0x10ffff.txt");
+    static ALL_UTF8_CHARACTERS_WITH_GARBAGE: &'static [u8; 4644508] =
+        include_bytes!("../props/utf8-characters-0-0x10ffff-with-garbage.bin");
     static RANDOM_BYTES: &'static [u8; 524288] = include_bytes!("../props/random_bytes.bin");
 
     #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -214,6 +218,8 @@ mod tests {
             assert_eq!($test_function(UTF8_SAMPLE_OK.as_bytes()), true);
             assert_eq!($test_function(ASCII_SAMPLE_OK.as_bytes()), true);
             assert_eq!($test_function(MOSTLY_ASCII_SAMPLE_OK.as_bytes()), true);
+            assert_eq!($test_function(ALL_UTF8_CHARACTERS.as_bytes()), true);
+            assert_eq!($test_function(ALL_UTF8_CHARACTERS_WITH_GARBAGE), false);
             assert_eq!($test_function(RANDOM_BYTES), false);
         };
     }
