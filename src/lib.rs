@@ -7,6 +7,7 @@
 #![feature(doc_cfg)]
 
 pub mod lemire;
+pub mod libcore;
 
 #[cfg(test)]
 #[macro_use]
@@ -239,6 +240,12 @@ mod tests {
     #[test]
     fn test_lemire_sse() {
         use super::lemire::sse::is_utf8;
+        create_tests!(is_utf8);
+    }
+
+    #[test]
+    fn test_libcore() {
+        use super::libcore::is_utf8;
         create_tests!(is_utf8);
     }
 }
