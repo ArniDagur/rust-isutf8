@@ -85,7 +85,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                     _mm_srli_epi16(input, 4 as libc::c_int),
                     _mm_set1_epi8(0xf as libc::c_int as libc::c_char),
                 );
-                let mut first_len: __m128i = _mm_shuffle_epi8(first_len_tbl, high_nibbles);
+                let first_len: __m128i = _mm_shuffle_epi8(first_len_tbl, high_nibbles);
                 let mut range: __m128i = _mm_shuffle_epi8(first_range_tbl, high_nibbles);
                 range = _mm_or_si128(
                     range,
@@ -161,7 +161,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                 return false;
             }
             let mut token4: i32 = _mm_extract_epi32(prev_input, 3 as libc::c_int);
-            let mut token: *const i8 = &mut token4 as *mut i32 as *const i8;
+            let token: *const i8 = &mut token4 as *mut i32 as *const i8;
             let mut lookahead: usize = 0;
             if *token.offset(3 as libc::c_int as isize) as libc::c_int
                 > 0xbf as libc::c_int as i8 as libc::c_int
