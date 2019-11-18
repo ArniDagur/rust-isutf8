@@ -25,6 +25,9 @@ macro_rules! bench {
                 .with_function("lemire_avx_ascii_path", move |b| {
                     b.iter(|| ::is_utf8::lemire::avx::is_utf8_ascii_path(bytes))
                 })
+                .with_function("range_sse", move |b| {
+                    b.iter(|| ::is_utf8::range::sse::is_utf8(bytes))
+                })
                 .throughput(Throughput::Bytes(bytes.len() as u64)),
             );
         }
