@@ -257,15 +257,15 @@ static mut _ef_fe_tbl: [i8; 32] = [
 ];
 /* Define 1 to return index of first error char */
 #[inline]
-unsafe fn push_last_byte_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
+unsafe fn push_last_byte_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21 as i32), 15 as i32);
 }
 #[inline]
-unsafe fn push_last_2bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
+unsafe fn push_last_2bytes_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21 as i32), 14 as i32);
 }
 #[inline]
-unsafe fn push_last_3bytes_of_a_to_b(mut a: __m256i, mut b: __m256i) -> __m256i {
+unsafe fn push_last_3bytes_of_a_to_b(a: __m256i, b: __m256i) -> __m256i {
     return _mm256_alignr_epi8(b, _mm256_permute2x128_si256(a, b, 0x21 as i32), 13 as i32);
 }
 
@@ -300,7 +300,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                 /* first_len = legal character length minus 1 */
                 /* 0 for 00~7F, 1 for C0~DF, 2 for E0~EF, 3 for F0~FF */
                 /* first_len = first_len_tbl[high_nibbles] */
-                let mut first_len: __m256i = _mm256_shuffle_epi8(first_len_tbl, high_nibbles);
+                let first_len: __m256i = _mm256_shuffle_epi8(first_len_tbl, high_nibbles);
                 /* First Byte: set range index to 8 for bytes within 0xC0 ~ 0xFF */
                 /* range = first_range_tbl[high_nibbles] */
                 let mut range: __m256i = _mm256_shuffle_epi8(first_range_tbl, high_nibbles);
@@ -359,8 +359,8 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                 range2 = _mm256_add_epi8(range2, _mm256_shuffle_epi8(ef_fe_tbl, tmp2));
                 range = _mm256_add_epi8(range, range2);
                 /* Load min and max values per calculated range index */
-                let mut minv: __m256i = _mm256_shuffle_epi8(range_min_tbl, range);
-                let mut maxv: __m256i = _mm256_shuffle_epi8(range_max_tbl, range);
+                let minv: __m256i = _mm256_shuffle_epi8(range_min_tbl, range);
+                let maxv: __m256i = _mm256_shuffle_epi8(range_max_tbl, range);
                 /* Check value range */
                 error = _mm256_or_si256(error, _mm256_cmpgt_epi8(minv, input));
                 error = _mm256_or_si256(error, _mm256_cmpgt_epi8(input, maxv));
@@ -374,7 +374,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
             }
             /* Find previous token (not 80~BF) */
             let mut token4: i32 = _mm256_extract_epi32(prev_input, 7 as i32);
-            let mut token: *const i8 = &mut token4 as *mut i32 as *const i8;
+            let token: *const i8 = &mut token4 as *mut i32 as *const i8;
             let mut lookahead = 0;
             if *token.offset(3 as i32 as isize) as i32 > 0xbf as i32 as i8 as i32 {
                 lookahead = 1
