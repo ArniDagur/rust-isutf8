@@ -37,71 +37,71 @@ static FIRST_RANGE_TABLE: [i8; 32] = [
 // Index 9~15 : illegal: i >= 127 && i <= -128
 static RANGE_MIN_TABLE: [i8; 32] = [
     0,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0xa0 as i32 as i8,
-    0x80 as i32 as i8,
-    0x90 as i32 as i8,
-    0x80 as i32 as i8,
-    0xC2 as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0xa0i32 as i8,
+    0x80i32 as i8,
+    0x90i32 as i8,
+    0x80i32 as i8,
+    0xC2i32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
     0,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0xa0 as i32 as i8,
-    0x80 as i32 as i8,
-    0x90 as i32 as i8,
-    0x80 as i32 as i8,
-    0xC2 as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
-    0x7F as i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0xa0i32 as i8,
+    0x80i32 as i8,
+    0x90i32 as i8,
+    0x80i32 as i8,
+    0xC2i32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
+    0x7Fi32 as i8,
 ];
 static RANGE_MAX_TABLE: [i8; 32] = [
-    0x7F as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0x9F as i32 as i8,
-    0xBF as i32 as i8,
-    0x8F as i32 as i8,
-    0xF4 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x7F as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0xBF as i32 as i8,
-    0x9F as i32 as i8,
-    0xBF as i32 as i8,
-    0x8f as i32 as i8,
-    0xF4 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
-    0x80 as i32 as i8,
+    0x7Fi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0x9Fi32 as i8,
+    0xBFi32 as i8,
+    0x8Fi32 as i8,
+    0xF4i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x7Fi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0xBFi32 as i8,
+    0x9Fi32 as i8,
+    0xBFi32 as i8,
+    0x8fi32 as i8,
+    0xF4i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
+    0x80i32 as i8,
 ];
 /*
  * Tables for fast handling of four special First Bytes(E0,ED,F0,F4), after
@@ -214,16 +214,16 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                 // Overlaps lead to index 9~15, which are illegal in range table
                 // shift1 = (input, prev_input) << 1 byte
                 let shift1 = push_last_byte_of_a_to_b(prev_input, input);
-                let pos = _mm256_sub_epi8(shift1, _mm256_set1_epi8(0xEF as i32 as i8));
+                let pos = _mm256_sub_epi8(shift1, _mm256_set1_epi8(0xEFi32 as i8));
                 // ---------+---------------+---------------------+---------------+
                 // shift1:  | EF  F0 ... FE | FF  00  ... ...  DE | DF  E0 ... EE |
                 // pos:     | 0   1      15 | 16  17           239| 240 241    255|
                 // pos-240: | 0   0      0  | 0   0            0  | 0   1      15 |
                 // pos+112: | 112 113    127|       >= 128        |     >= 128    |
                 // ---------+---------------+---------------------+---------------+
-                tmp1 = _mm256_subs_epu8(pos, _mm256_set1_epi8(240 as i32 as i8));
+                tmp1 = _mm256_subs_epu8(pos, _mm256_set1_epi8(240i32 as i8));
                 let mut range2 = _mm256_shuffle_epi8(df_ee_tbl, tmp1);
-                tmp2 = _mm256_adds_epu8(pos, _mm256_set1_epi8(112 as i32 as i8));
+                tmp2 = _mm256_adds_epu8(pos, _mm256_set1_epi8(112i32 as i8));
                 range2 = _mm256_add_epi8(range2, _mm256_shuffle_epi8(ef_fe_tbl, tmp2));
                 range = _mm256_add_epi8(range, range2);
                 // Load min and max values per calculated range index
@@ -244,11 +244,11 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
             let mut token4: i32 = _mm256_extract_epi32(prev_input, 7);
             let token: *const i8 = &mut token4 as *mut i32 as *const i8;
             let mut lookahead = 0;
-            if *token.offset(3 as i32 as isize) > 0xBF as i32 as i8 {
+            if *token.offset(3) > 0xBFi32 as i8 {
                 lookahead = 1
-            } else if *token.offset(2 as i32 as isize) > 0xBF as i32 as i8 {
+            } else if *token.offset(2) > 0xBFi32 as i8 {
                 lookahead = 2
-            } else if *token.offset(1 as i32 as isize) > 0xBF as i32 as i8 {
+            } else if *token.offset(1) > 0xBFi32 as i8 {
                 lookahead = 3
             }
             data = data.offset(-(lookahead as isize));
