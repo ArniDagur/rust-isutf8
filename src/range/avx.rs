@@ -1,17 +1,17 @@
 use crate::libcore;
 #[cfg(target_arch = "x86")]
-pub use core::arch::x86::{
+use core::arch::x86::{
     __m256i, _mm256_add_epi8, _mm256_adds_epu8, _mm256_alignr_epi8, _mm256_and_si256,
     _mm256_cmpgt_epi8, _mm256_extract_epi32, _mm256_lddqu_si256, _mm256_or_si256,
     _mm256_permute2x128_si256, _mm256_set1_epi8, _mm256_set_epi8, _mm256_setzero_si256,
     _mm256_shuffle_epi8, _mm256_srli_epi16, _mm256_sub_epi8, _mm256_subs_epu8, _mm256_testz_si256,
 };
 #[cfg(target_arch = "x86_64")]
-pub use core::arch::x86_64::{
+use core::arch::x86_64::{
     __m256i, _mm256_add_epi8, _mm256_adds_epu8, _mm256_alignr_epi8, _mm256_and_si256,
     _mm256_cmpgt_epi8, _mm256_extract_epi32, _mm256_lddqu_si256, _mm256_or_si256,
-    _mm256_permute2x128_si256, _mm256_set1_epi8, _mm256_set_epi8, _mm256_setzero_si256,
-    _mm256_shuffle_epi8, _mm256_srli_epi16, _mm256_sub_epi8, _mm256_subs_epu8, _mm256_testz_si256,
+    _mm256_permute2x128_si256, _mm256_set1_epi8, _mm256_setzero_si256, _mm256_shuffle_epi8,
+    _mm256_srli_epi16, _mm256_sub_epi8, _mm256_subs_epu8, _mm256_testz_si256,
 };
 
 // Map high nibble of "First Byte" to legal character length minus 1
