@@ -22,7 +22,7 @@ pub use core::arch::x86_64::{
  * 0xE0 ~ 0xEF --> 2
  * 0xF0 ~ 0xFF --> 3
  */
-static mut _first_len_tbl: [i8; 32] = [
+static _first_len_tbl: [i8; 32] = [
     0 as i32 as i8,
     0 as i32 as i8,
     0 as i32 as i8,
@@ -57,7 +57,7 @@ static mut _first_len_tbl: [i8; 32] = [
     3 as i32 as i8,
 ];
 /* Map "First Byte" to 8-th item of range table (0xC2 ~ 0xF4) */
-static mut _first_range_tbl: [i8; 32] = [
+static _first_range_tbl: [i8; 32] = [
     0 as i32 as i8,
     0 as i32 as i8,
     0 as i32 as i8,
@@ -102,7 +102,7 @@ static mut _first_range_tbl: [i8; 32] = [
  * Index 8    : C2 ~ F4 (First Byte, non ascii)
  * Index 9~15 : illegal: i >= 127 && i <= -128
  */
-static mut _range_min_tbl: [i8; 32] = [
+static _range_min_tbl: [i8; 32] = [
     0 as i32 as i8,
     0x80 as i32 as i8,
     0x80 as i32 as i8,
@@ -136,7 +136,7 @@ static mut _range_min_tbl: [i8; 32] = [
     0x7f as i32 as i8,
     0x7f as i32 as i8,
 ];
-static mut _range_max_tbl: [i8; 32] = [
+static _range_max_tbl: [i8; 32] = [
     0x7f as i32 as i8,
     0xbf as i32 as i8,
     0xbf as i32 as i8,
@@ -186,7 +186,7 @@ static mut _range_max_tbl: [i8; 32] = [
  * +------------+---------------+------------------+----------------+
  */
 /* index1 -> E0, index14 -> ED */
-static mut _df_ee_tbl: [i8; 32] = [
+static _df_ee_tbl: [i8; 32] = [
     0 as i32 as i8,
     2 as i32 as i8,
     0 as i32 as i8,
@@ -221,7 +221,7 @@ static mut _df_ee_tbl: [i8; 32] = [
     0 as i32 as i8,
 ];
 /* index1 -> F0, index5 -> F4 */
-static mut _ef_fe_tbl: [i8; 32] = [
+static _ef_fe_tbl: [i8; 32] = [
     0 as i32 as i8,
     3 as i32 as i8,
     0 as i32 as i8,
@@ -310,12 +310,10 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                 range = _mm256_or_si256(range, push_last_byte_of_a_to_b(prev_first_len, first_len));
                 /* Third Byte: set range index to saturate_sub(first_len, 1) */
                 /* 0 for 00~7F, 0 for C0~DF, 1 for E0~EF, 2 for F0~FF */
-                let mut tmp1: __m256i = _mm256_setzero_si256();
-                let mut tmp2: __m256i = _mm256_setzero_si256();
                 /* tmp1 = saturate_sub(first_len, 1) */
-                tmp1 = _mm256_subs_epu8(first_len, _mm256_set1_epi8(1 as i32 as i8));
+                let mut tmp1 = _mm256_subs_epu8(first_len, _mm256_set1_epi8(1 as i32 as i8));
                 /* tmp2 = saturate_sub(prev_first_len, 1) */
-                tmp2 = _mm256_subs_epu8(prev_first_len, _mm256_set1_epi8(1 as i32 as i8));
+                let mut tmp2 = _mm256_subs_epu8(prev_first_len, _mm256_set1_epi8(1 as i32 as i8));
                 /* range |= (tmp1, tmp2) << 2 bytes */
                 range = _mm256_or_si256(range, push_last_2bytes_of_a_to_b(tmp2, tmp1));
                 /* Fourth Byte: set range index to saturate_sub(first_len, 2) */
@@ -341,12 +339,9 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                  */
                 /* Adjust Second Byte range for special First Bytes(E0,ED,F0,F4) */
                 /* Overlaps lead to index 9~15, which are illegal in range table */
-                let mut shift1: __m256i = _mm256_setzero_si256();
-                let mut pos: __m256i = _mm256_setzero_si256();
-                let mut range2: __m256i = _mm256_setzero_si256();
                 /* shift1 = (input, prev_input) << 1 byte */
-                shift1 = push_last_byte_of_a_to_b(prev_input, input);
-                pos = _mm256_sub_epi8(shift1, _mm256_set1_epi8(0xef as i32 as i8));
+                let shift1 = push_last_byte_of_a_to_b(prev_input, input);
+                let pos = _mm256_sub_epi8(shift1, _mm256_set1_epi8(0xef as i32 as i8));
                 /*
                  * shift1:  | EF  F0 ... FE | FF  00  ... ...  DE | DF  E0 ... EE |
                  * pos:     | 0   1      15 | 16  17           239| 240 241    255|
@@ -354,7 +349,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
                  * pos+112: | 112 113    127|       >= 128        |     >= 128    |
                  */
                 tmp1 = _mm256_subs_epu8(pos, _mm256_set1_epi8(240 as i32 as i8));
-                range2 = _mm256_shuffle_epi8(df_ee_tbl, tmp1);
+                let mut range2 = _mm256_shuffle_epi8(df_ee_tbl, tmp1);
                 tmp2 = _mm256_adds_epu8(pos, _mm256_set1_epi8(112 as i32 as i8));
                 range2 = _mm256_add_epi8(range2, _mm256_shuffle_epi8(ef_fe_tbl, tmp2));
                 range = _mm256_add_epi8(range, range2);
