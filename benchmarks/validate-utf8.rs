@@ -28,6 +28,9 @@ macro_rules! bench {
                 .with_function("range_sse", move |b| {
                     b.iter(|| ::is_utf8::range::sse::is_utf8(bytes))
                 })
+                .with_function("range_avx", move |b| {
+                    b.iter(|| ::is_utf8::range::avx::is_utf8(bytes))
+                })
                 .throughput(Throughput::Bytes(bytes.len() as u64)),
             );
         }

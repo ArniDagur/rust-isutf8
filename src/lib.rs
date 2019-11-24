@@ -255,4 +255,10 @@ mod tests {
         use super::range::sse::is_utf8;
         create_tests!(is_utf8);
     }
+
+    #[test]
+    fn test_range_avx() {
+        use super::range::avx::is_utf8;
+        create_tests!(is_utf8);
+    }
 }

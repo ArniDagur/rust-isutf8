@@ -10,3 +10,6 @@
 #[cfg(any(all(target_feature = "sse4.1"), dox))]
 #[doc(cfg(all(target_feature = "sse4.1")))]
 pub mod sse;
+#[cfg(any(all(target_feature = "avx", target_feature = "avx2"), dox))]
+#[doc(cfg(all(target_feature = "avx", target_feature = "avx2")))]
+pub mod avx;
