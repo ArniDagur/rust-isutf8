@@ -1,4 +1,3 @@
-#![feature(stdsimd)]
 use crate::libcore;
 #[cfg(target_arch = "x86")]
 pub use core::arch::x86::{
@@ -22,7 +21,7 @@ pub use core::arch::x86_64::{
  * 0xE0 ~ 0xEF --> 2
  * 0xF0 ~ 0xFF --> 3
  */
-static _first_len_tbl: [i8; 32] = [
+static FIRST_LEN_TABLE: [i8; 32] = [
     0 as i32 as i8,
     0 as i32 as i8,
     0 as i32 as i8,
@@ -57,7 +56,7 @@ static _first_len_tbl: [i8; 32] = [
     3 as i32 as i8,
 ];
 /* Map "First Byte" to 8-th item of range table (0xC2 ~ 0xF4) */
-static _first_range_tbl: [i8; 32] = [
+static FIRST_RANGE_TABLE: [i8; 32] = [
     0 as i32 as i8,
     0 as i32 as i8,
     0 as i32 as i8,
@@ -102,7 +101,7 @@ static _first_range_tbl: [i8; 32] = [
  * Index 8    : C2 ~ F4 (First Byte, non ascii)
  * Index 9~15 : illegal: i >= 127 && i <= -128
  */
-static _range_min_tbl: [i8; 32] = [
+static RANGE_MIN_TABLE: [i8; 32] = [
     0 as i32 as i8,
     0x80 as i32 as i8,
     0x80 as i32 as i8,
@@ -136,7 +135,7 @@ static _range_min_tbl: [i8; 32] = [
     0x7f as i32 as i8,
     0x7f as i32 as i8,
 ];
-static _range_max_tbl: [i8; 32] = [
+static RANGE_MAX_TABLE: [i8; 32] = [
     0x7f as i32 as i8,
     0xbf as i32 as i8,
     0xbf as i32 as i8,
@@ -186,7 +185,7 @@ static _range_max_tbl: [i8; 32] = [
  * +------------+---------------+------------------+----------------+
  */
 /* index1 -> E0, index14 -> ED */
-static _df_ee_tbl: [i8; 32] = [
+static DF_EE_TABLE: [i8; 32] = [
     0 as i32 as i8,
     2 as i32 as i8,
     0 as i32 as i8,
@@ -221,7 +220,7 @@ static _df_ee_tbl: [i8; 32] = [
     0 as i32 as i8,
 ];
 /* index1 -> F0, index5 -> F4 */
-static _ef_fe_tbl: [i8; 32] = [
+static EF_FE_TABLE: [i8; 32] = [
     0 as i32 as i8,
     3 as i32 as i8,
     0 as i32 as i8,
@@ -280,15 +279,15 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
             let mut prev_first_len: __m256i = _mm256_set1_epi8(0 as i32 as i8);
             /* Cached tables */
             let first_len_tbl: __m256i =
-                _mm256_lddqu_si256(_first_len_tbl.as_ptr() as *const __m256i);
+                _mm256_lddqu_si256(FIRST_LEN_TABLE.as_ptr() as *const __m256i);
             let first_range_tbl: __m256i =
-                _mm256_lddqu_si256(_first_range_tbl.as_ptr() as *const __m256i);
+                _mm256_lddqu_si256(FIRST_RANGE_TABLE.as_ptr() as *const __m256i);
             let range_min_tbl: __m256i =
-                _mm256_lddqu_si256(_range_min_tbl.as_ptr() as *const __m256i);
+                _mm256_lddqu_si256(RANGE_MIN_TABLE.as_ptr() as *const __m256i);
             let range_max_tbl: __m256i =
-                _mm256_lddqu_si256(_range_max_tbl.as_ptr() as *const __m256i);
-            let df_ee_tbl: __m256i = _mm256_lddqu_si256(_df_ee_tbl.as_ptr() as *const __m256i);
-            let ef_fe_tbl: __m256i = _mm256_lddqu_si256(_ef_fe_tbl.as_ptr() as *const __m256i);
+                _mm256_lddqu_si256(RANGE_MAX_TABLE.as_ptr() as *const __m256i);
+            let df_ee_tbl: __m256i = _mm256_lddqu_si256(DF_EE_TABLE.as_ptr() as *const __m256i);
+            let ef_fe_tbl: __m256i = _mm256_lddqu_si256(EF_FE_TABLE.as_ptr() as *const __m256i);
             let mut error: __m256i = _mm256_set1_epi8(0 as i32 as i8);
             while len >= 32 {
                 let input: __m256i = _mm256_lddqu_si256(data as *const __m256i);
