@@ -65,15 +65,17 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
     let mut len = bytes.len();
     unsafe {
         if len >= 32 {
-            let mut prev_input = _mm_set1_epi8(0);
-            let mut prev_first_len = _mm_set1_epi8(0);
+            let mut prev_input = _mm_setzero_si128();
+            let mut prev_first_len = _mm_setzero_si128();
+            let mut error = _mm_setzero_si128();
+
+            // This should be safe as long as the tables are all 16 bytes long
             let first_len_table = _mm_lddqu_si128(FIRST_LEN_TABLE.as_ptr() as *const __m128i);
             let first_range_table = _mm_lddqu_si128(FIRST_RANGE_TABLE.as_ptr() as *const __m128i);
             let range_min_table = _mm_lddqu_si128(RANGE_MIN_TABLE.as_ptr() as *const __m128i);
             let range_max_table = _mm_lddqu_si128(RANGE_MAX_TABLE.as_ptr() as *const __m128i);
             let df_ee_table = _mm_lddqu_si128(DF_EE_TABLE.as_ptr() as *const __m128i);
             let ef_fe_table = _mm_lddqu_si128(EF_FE_TABLE.as_ptr() as *const __m128i);
-            let mut error = _mm_set1_epi8(0);
 
             while len >= 32 {
                 /* **************************** block 1 ****************************/
