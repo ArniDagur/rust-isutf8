@@ -25,6 +25,12 @@ macro_rules! bench {
                 .with_function("lemire_avx_ascii_path", move |b| {
                     b.iter(|| ::is_utf8::lemire::avx::is_utf8_ascii_path(bytes))
                 })
+                .with_function("range_sse", move |b| {
+                    b.iter(|| ::is_utf8::range::sse::is_utf8(bytes))
+                })
+                .with_function("range_avx", move |b| {
+                    b.iter(|| ::is_utf8::range::avx::is_utf8(bytes))
+                })
                 .throughput(Throughput::Bytes(bytes.len() as u64)),
             );
         }
@@ -36,7 +42,10 @@ bench!(mostly_ascii, "../props/mostly_ascii_sample_ok.txt");
 bench!(ascii, "../props/ascii_sample_ok.txt");
 bench!(utf8, "../props/utf8_sample_ok.txt");
 bench!(all_utf8, "../props/utf8-characters-0-0x10ffff.txt");
-bench!(all_utf8_with_garbage, "../props/utf8-characters-0-0x10ffff-with-garbage.bin");
+bench!(
+    all_utf8_with_garbage,
+    "../props/utf8-characters-0-0x10ffff-with-garbage.bin"
+);
 
 criterion_group!(
     benches,

@@ -8,6 +8,7 @@
 
 pub mod lemire;
 pub mod libcore;
+pub mod range;
 
 #[cfg(test)]
 #[macro_use]
@@ -246,6 +247,18 @@ mod tests {
     #[test]
     fn test_libcore() {
         use super::libcore::is_utf8;
+        create_tests!(is_utf8);
+    }
+
+    #[test]
+    fn test_range_sse() {
+        use super::range::sse::is_utf8;
+        create_tests!(is_utf8);
+    }
+
+    #[test]
+    fn test_range_avx() {
+        use super::range::avx::is_utf8;
         create_tests!(is_utf8);
     }
 }
