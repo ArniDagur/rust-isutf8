@@ -1,6 +1,6 @@
 [package]
 name = "is_utf8"
-version = "0.1.1"
+version = "0.1.2"
 license = "MIT OR Apache-2.0"
 authors = ["Árni Dagur <arni@dagur.eu>"]
 description = "Provides functions to determine if a sequence of bytes is valid utf-8."
