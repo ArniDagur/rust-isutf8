@@ -227,18 +227,21 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(target_feature = "avx", target_feature = "avx2"))]
     fn test_lemire_avx() {
         use super::lemire::avx::is_utf8;
         create_tests!(is_utf8);
     }
 
     #[test]
+    #[cfg(all(target_feature = "avx", target_feature = "avx2"))]
     fn test_lemire_avx_ascii() {
         use super::lemire::avx::is_utf8_ascii_path;
         create_tests!(is_utf8_ascii_path);
     }
 
     #[test]
+    #[cfg(target_feature = "sse4.1")]
     fn test_lemire_sse() {
         use super::lemire::sse::is_utf8;
         create_tests!(is_utf8);
@@ -251,12 +254,14 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_feature = "sse4.1")]
     fn test_range_sse() {
         use super::range::sse::is_utf8;
         create_tests!(is_utf8);
     }
 
     #[test]
+    #[cfg(all(target_feature = "avx", target_feature = "avx2"))]
     fn test_range_avx() {
         use super::range::avx::is_utf8;
         create_tests!(is_utf8);
