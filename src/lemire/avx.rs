@@ -410,9 +410,8 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
     }
     // last part
     if i < len {
+        let mut buffer = [0; 32];
         unsafe {
-            let mut buffer = [0; 32];
-            ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
             ptr::copy(
                 bytes.as_ptr().offset(i as isize),
                 buffer.as_mut_ptr(),
