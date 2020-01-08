@@ -294,7 +294,7 @@ impl State {
     }
 
     #[inline]
-    fn is_erronous(&mut self) -> bool {
+    fn is_erroneous(&mut self) -> bool {
         unsafe { _mm256_testz_si256(self.has_error, self.has_error) != 0 }
     }
 }
@@ -391,7 +391,7 @@ pub fn is_utf8_ascii_path(bytes: &[u8]) -> bool {
         }
     }
 
-    state.is_erronous()
+    state.is_erroneous()
 }
 
 pub fn is_utf8(bytes: &[u8]) -> bool {
@@ -435,5 +435,5 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
         }
     }
 
-    state.is_erronous()
+    state.is_erroneous()
 }

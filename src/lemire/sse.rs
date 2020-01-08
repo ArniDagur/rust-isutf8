@@ -231,7 +231,7 @@ impl State {
         }
     }
 
-    fn is_erronous(self) -> bool {
+    fn is_erroneous(self) -> bool {
         unsafe { _mm_testz_si128(self.has_error, self.has_error) != 0 }
     }
 }
@@ -300,5 +300,5 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
         }
     }
 
-    state.is_erronous()
+    state.is_erroneous()
 }
