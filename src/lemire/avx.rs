@@ -121,8 +121,8 @@ impl State {
     // check whether the current bytes are valid UTF-8
     // at the end of the function, previous gets updated
     fn check_bytes_ascii_path(&mut self, current_bytes: __m256i) {
-        unsafe {
-            if _mm256_testz_si256(current_bytes, _mm256_set1_epi8(0x80i32 as i8)) != 0 {
+        if no_most_significant_bits(current_bytes) {
+            unsafe {
                 // Fast ascii path
                 self.has_error = _mm256_or_si256(
                     _mm256_cmpgt_epi8(
@@ -297,6 +297,13 @@ impl State {
     fn is_erronous(&mut self) -> bool {
         unsafe { _mm256_testz_si256(self.has_error, self.has_error) != 0 }
     }
+}
+
+/// Return `true` if none of the bytes given have their most significant bit
+/// set to `1`.
+#[inline]
+fn no_most_significant_bits(bytes: __m256i) -> bool {
+    unsafe { _mm256_testz_si256(bytes, _mm256_set1_epi8(0x80i32 as i8)) != 0 }
 }
 
 #[inline]
