@@ -358,7 +358,7 @@ pub fn is_utf8_ascii_path(bytes: &[u8]) -> bool {
         unsafe {
             let mut buffer = [0; 32];
             ptr::write_bytes(buffer.as_mut_ptr(), 0, 32);
-            ptr::copy(
+            ptr::copy_nonoverlapping(
                 bytes.as_ptr().offset(i as isize),
                 buffer.as_mut_ptr(),
                 len - i,
@@ -402,7 +402,7 @@ pub fn is_utf8(bytes: &[u8]) -> bool {
     if i < len {
         let mut buffer = [0; 32];
         unsafe {
-            ptr::copy(
+            ptr::copy_nonoverlapping(
                 bytes.as_ptr().offset(i as isize),
                 buffer.as_mut_ptr(),
                 len - i,
