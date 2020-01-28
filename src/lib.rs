@@ -4,7 +4,7 @@
 // Copyright (c) 2019 Árni Dagur <arni@dagur.eu> MIT license
 //
 #![no_std]
-#![feature(doc_cfg)]
+#![cfg_attr(dox, feature(doc_cfg))]
 
 pub mod lemire;
 pub mod libcore;
