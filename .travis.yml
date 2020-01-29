@@ -146,20 +146,21 @@ matrix:
     # Tools
     # --------------
     - name: "Documentation"
+      install: true
       script: cargo doc
       stage: tools
     - name: "rustfmt"
       install: true
       script: |
         if rustup component add rustfmt-preview ; then
-            ci/all.sh check_fmt || true
+            cargo fmt --check || true
         fi
       stage: tools
     - name: "clippy"
       install: true
       script: |
         if rustup component add clippy-preview ; then
-            ci/all.sh clippy
+            cargo clippy || true
         fi
       stage: tools
 
