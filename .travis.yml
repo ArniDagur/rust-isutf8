@@ -1,0 +1,179 @@
+language: rust
+sudo: false
+rust:
+  - stable
+  - nightly
+
+stages:
+  - tools
+  - linux-tier1
+  - linux-tier2
+  - osx-tier1
+
+matrix:
+  fast_finish: true    
+  include:
+    # --------------
+    # Linux
+    # --------------
+    # x86
+    - env: TARGET=i586-unknown-linux-gnu
+      name: "i586-unknown-linux-gnu"
+      stage: linux-tier2
+    - env: TARGET=i586-unknown-linux-gnu RUSTFLAGS="-C target-feature=+sse"
+      name: "i586-unknown-linux-gnu + SSE"
+      stage: linux-tier2
+    - env: TARGET=i586-unknown-linux-gnu RUSTFLAGS="-C target-feature=+sse2"
+      name: "i586-unknown-linux-gnu + SSE2"
+      stage: linux-tier2
+    - env: TARGET=i686-unknown-linux-gnu
+      name: "i686-unknown-linux-gnu + SSE2"
+      stage: linux-tier1
+    - env: TARGET=i686-unknown-linux-gnu RUSTFLAGS="-C target-feature=+sse4.2"
+      name: "i686-unknown-linux-gnu + SSE4.2"
+      stage: linux-tier1
+    - env: TARGET=i686-unknown-linux-gnu RUSTFLAGS="-C target-feature=+avx2"
+      name: "i686-unknown-linux-gnu + AVX2"
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu
+      name: "x86_64-unknown-linux-gnu + SSE2"
+      install: rustup component add rustfmt-preview
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu RUSTFLAGS="-C target-feature=+sse4.2"
+      name: "x86_64-unknown-linux-gnu + SSE4.2"
+      install: rustup component add rustfmt-preview
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu RUSTFLAGS="-C target-feature=+avx"
+      name: "x86_64-unknown-linux-gnu + AVX"
+      install: rustup component add rustfmt-preview
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu RUSTFLAGS="-C target-feature=+avx2"
+      name: "x86_64-unknown-linux-gnu + AVX2"
+      install: rustup component add rustfmt-preview
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu-emulated
+      name: "Intel SDE + SSE2"
+      install: true
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu-emulated RUSTFLAGS="-C target-feature=+sse4.2"
+      name: "Intel SDE + SSE4.2"
+      install: true
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu-emulated RUSTFLAGS="-C target-feature=+avx"
+      name: "Intel SDE + AVX"
+      install: true
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu-emulated RUSTFLAGS="-C target-feature=+avx2"
+      name: "Intel SDE + AVX2"
+      install: true
+      stage: linux-tier1
+    - env: TARGET=x86_64-unknown-linux-gnu-emulated RUSTFLAGS="-C target-feature=+avx-512f"
+      name: "Intel SDE + AVX-512"
+      install: true
+      stage: linux-tier1
+    # ARM
+    - env: TARGET=arm-unknown-linux-gnueabi
+      name: "arm-unknown-linux-gnueabi"
+      stage: linux-tier2
+    - env: TARGET=arm-unknown-linux-gnueabi RUSTFLAGS="-C target-feature=+v7,+neon"
+      name: "arm-unknown-linux-gnueabi + NEON"
+      stage: linux-tier2
+    - env: TARGET=arm-unknown-linux-gnueabihf
+      name: "arm-unknown-linux-gnueabihf"
+      stage: linux-tier2
+    - env: TARGET=arm-unknown-linux-gnueabihf RUSTFLAGS="-C target-feature=+v7,+neon"
+      name: "arm-unknown-linux-gnueabihf + NEON"
+      stage: linux-tier2
+    - env: TARGET=armv7-unknown-linux-gnueabihf
+      name: "armv7-unknown-linux-gnueabihf"
+      stage: linux-tier2
+    - env: TARGET=armv7-unknown-linux-gnueabihf RUSTFLAGS="-C target-feature=+neon"
+      name: "armv7-unknown-linux-gnueabihf + NEON"
+      stage: linux-tier2
+    - env: TARGET="thumbv7neon-unknown-linux-gnueabihf"
+      name: "thumbv7neon-unknown-linux-gnueabihf"
+      stage: linux-tier2
+    - env: TARGET=aarch64-unknown-linux-gnu
+      name: "aarch64-unknown-linux-gnu"
+      stage: linux-tier2
+    - env: TARGET=aarch64-unknown-linux-gnu RUSTFLAGS="-C target-feature=+neon"
+      name: "aarch64-unknown-linux-gnu + NEON"
+    # --------------
+    # Mac OS:
+    # --------------
+    - os: osx
+      env: TARGET=i686-apple-darwin
+      name: "i686-apple-darwin + SSE2"
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+    - os: osx
+      env: TARGET=i686-apple-darwin RUSTFLAGS="-C target-feature=+sse4.2"
+      name: "i686-apple-darwin + SSE4.2"
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+      # Travis-CI OSX build bots do not support AVX2:
+    - os: osx
+      env: TARGET=i686-apple-darwin RUSTFLAGS="-C target-feature=+avx"
+      name: "i686-apple-darwin + AVX"
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+    - os: osx
+      env: TARGET=x86_64-apple-darwin
+      name: "x86_64-apple-darwin + SSE2"
+      install: true
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+    - os: osx
+      env: TARGET=x86_64-apple-darwin RUSTFLAGS="-C target-feature=+sse4.2"
+      name: "x86_64-apple-darwin + SSE4.2"
+      install: true
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+      # Travis-CI OSX build bots do not support AVX2:
+    - os: osx
+      env: TARGET=x86_64-apple-darwin RUSTFLAGS="-C target-feature=+avx"
+      name: "x86_64-apple-darwin + AVX"
+      install: true
+      script: ci/run.sh
+      osx_image: xcode10
+      stage: osx-tier1
+    # --------------
+    # Tools
+    # --------------
+    - name: "Documentation"
+      script: cargo doc
+      stage: tools
+    - name: "rustfmt"
+      install: true
+      script: |
+        if rustup component add rustfmt-preview ; then
+            ci/all.sh check_fmt || true
+        fi
+      stage: tools
+    - name: "clippy"
+      install: true
+      script: |
+        if rustup component add clippy-preview ; then
+            ci/all.sh clippy
+        fi
+      stage: tools
+
+  allow_failures:
+    # FIXME: https://github.com/rust-lang-nursery/packed_simd/issues/182
+    - env: TARGET=arm-unknown-linux-gnueabi RUSTFLAGS="-C target-feature=+v7,+neon"
+    - env: TARGET=arm-unknown-linux-gnueabihf RUSTFLAGS="-C target-feature=+v7,+neon"
+    - env: TARGET=armv7-unknown-linux-gnueabihf RUSTFLAGS="-C target-feature=+neon"
+
+install: travis_retry rustup target add $TARGET
+before_script: cargo generate-lockfile
+script: travis_wait 50 ci/run-docker.sh
+after_script: sleep 5
+
+notifications:
+  email:
+    on_success: never
