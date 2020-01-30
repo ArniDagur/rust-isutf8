@@ -103,12 +103,14 @@ matrix:
     # --------------
     - os: osx
       env: TARGET=i686-apple-darwin
+      rust: stable
       name: "i686-apple-darwin + SSE2"
       script: ci/run.sh
       osx_image: xcode10
       stage: osx-tier1
     - os: osx
       env: TARGET=i686-apple-darwin RUSTFLAGS="-C target-feature=+sse4.2"
+      rust: stable
       name: "i686-apple-darwin + SSE4.2"
       script: ci/run.sh
       osx_image: xcode10
@@ -116,6 +118,7 @@ matrix:
       # Travis-CI OSX build bots do not support AVX2:
     - os: osx
       env: TARGET=i686-apple-darwin RUSTFLAGS="-C target-feature=+avx"
+      rust: stable
       name: "i686-apple-darwin + AVX"
       script: ci/run.sh
       osx_image: xcode10
