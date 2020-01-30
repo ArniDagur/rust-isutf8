@@ -1,8 +1,6 @@
 language: rust
 sudo: false
-rust:
-  - stable
-  - nightly
+rust: nightly
 
 stages:
   - tools
