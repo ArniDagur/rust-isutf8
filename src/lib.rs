@@ -9,6 +9,7 @@
 pub mod lemire;
 pub mod libcore;
 pub mod range;
+pub mod zwegner;
 
 #[cfg(test)]
 #[macro_use]
@@ -264,6 +265,13 @@ mod tests {
     #[cfg(all(target_feature = "avx", target_feature = "avx2"))]
     fn test_range_avx() {
         use super::range::avx::is_utf8;
+        create_tests!(is_utf8);
+    }
+
+    #[test]
+    #[cfg(all(target_feature = "avx", target_feature = "avx2"))]
+    fn test_zwegner_avx() {
+        use super::zwegner::avx::is_utf8;
         create_tests!(is_utf8);
     }
 }
