@@ -16,4 +16,4 @@ harness = false
 rustdoc-args = [ "--cfg dox" ]
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.5"
